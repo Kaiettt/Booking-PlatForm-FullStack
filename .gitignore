@@ -1,0 +1,30 @@
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Frontend (booking-ui)
+booking-ui/node_modules/
+booking-ui/dist/
+booking-ui/.env
+booking-ui/.env.*
+!booking-ui/.env.example
+
+# Backend (Accomodation-Booking-OTA)
+Accomodation-Booking-OTA/target/
+Accomodation-Booking-OTA/.mvn/wrapper/maven-wrapper.jar
+Accomodation-Booking-OTA/.env
+Accomodation-Booking-OTA/.env.*
+!Accomodation-Booking-OTA/.env.example
+Accomodation-Booking-OTA/*.log
+
+# Docker
+docker/*/data/
+*.log
+docker-compose.override.yml
