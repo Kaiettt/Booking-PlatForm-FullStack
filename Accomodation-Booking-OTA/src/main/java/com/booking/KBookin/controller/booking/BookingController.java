@@ -27,6 +27,7 @@ public class BookingController {
     }
     @GetMapping("/{id}")
     public ResponseEntity<BookingResponse> getBookingById(@PathVariable("id") Long id){
+        System.out.println("Test oke");
         return ResponseEntity.ok(this.bookingService.getBookingById(id));
     }
     @PreAuthorize("hasRole('HOST')")
