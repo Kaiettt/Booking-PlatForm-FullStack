@@ -51,7 +51,7 @@ public class AuthenticationController {
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,this.authenicationService.getCookie(loginResponce.getRefreshToken()).toString()).body(loginResponce);
     }
-
+    
 
 
     @GetMapping("/refresh")
@@ -60,6 +60,7 @@ public class AuthenticationController {
         if(refresh_token == null || refresh_token.isEmpty()) {
             throw new EntityExistsException(Common.REFRESH_TOKEN_NOT_FOUND);
         }
+        System.out.println("Test oke");
         LoginResponce loginResponce = this.authenicationService.getAccessToken(refresh_token);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, this.authenicationService.getCookie(loginResponce.getRefreshToken()).toString())
