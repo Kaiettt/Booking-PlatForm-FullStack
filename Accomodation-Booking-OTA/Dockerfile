@@ -7,7 +7,9 @@ WORKDIR /app
 COPY . .
 
 # Build jar (skip test cho nhanh)
-RUN ./mvnw clean package -DskipTests
+# Ensure the Maven wrapper is executable
+RUN chmod +x mvnw && \
+    ./mvnw clean package -DskipTests
 
 # ===== STAGE 2: Run =====
 FROM eclipse-temurin:21-jre-alpine
