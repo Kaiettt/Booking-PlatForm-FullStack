@@ -9,7 +9,7 @@ jobs:
     runs-on: [self-hosted, linux, x64]
 
     env:
-      COMPOSE_FILE: Booking-Project-fullstack/docker-compose.yml
+      COMPOSE_FILE: docker-compose.yml
 
     steps:
       # -------------------------------------------------
@@ -19,14 +19,14 @@ jobs:
         uses: actions/checkout@v4
 
       # -------------------------------------------------
-      # 2️⃣ Verify project structure (safety check)
+      # 2️⃣ Verify project structure (debug, safe)
       # -------------------------------------------------
       - name: Verify project structure
         run: |
-          ls Booking-Project-fullstack
-          ls Booking-Project-fullstack/booking-ui
-          ls Booking-Project-fullstack/Accomodation-Booking-OTA
-          ls Booking-Project-fullstack/nginx
+          ls
+          ls booking-ui
+          ls Accomodation-Booking-OTA
+          ls nginx
 
       # -------------------------------------------------
       # 3️⃣ Cache Maven (backend)
@@ -35,7 +35,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('Booking-Project-fullstack/Accomodation-Booking-OTA/**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('Accomodation-Booking-OTA/**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
 
@@ -45,8 +45,8 @@ jobs:
       - name: Cache npm modules
         uses: actions/cache@v4
         with:
-          path: Booking-Project-fullstack/booking-ui/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('Booking-Project-fullstack/booking-ui/package-lock.json') }}
+          path: booking-ui/node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('booking-ui/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
 
@@ -56,7 +56,7 @@ jobs:
       - name: Generate backend .env
         uses: DamianReeves/write-file-action@v1.3
         with:
-          path: Booking-Project-fullstack/Accomodation-Booking-OTA/.env
+          path: Accomodation-Booking-OTA/.env
           contents: |
             SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
             SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
@@ -74,24 +74,24 @@ jobs:
             VNPAY_HASH_SECRET=${{ secrets.VNPAY_HASH_SECRET }}
 
       # -------------------------------------------------
-      # 6️⃣ Build backend Docker image (SINGLE LINE ✅)
+      # 6️⃣ Build backend Docker image (SINGLE LINE)
       # -------------------------------------------------
       - name: Build backend image
-        run: docker build -f Booking-Project-fullstack/Accomodation-Booking-OTA/Dockerfile -t booking-backend:latest Booking-Project-fullstack
+        run: docker build -f Accomodation-Booking-OTA/Dockerfile -t booking-backend:latest .
 
       # -------------------------------------------------
-      # 7️⃣ Build frontend Docker image (SINGLE LINE ✅)
+      # 7️⃣ Build frontend Docker image (SINGLE LINE)
       # -------------------------------------------------
       - name: Build frontend image
-        run: docker build -f Booking-Project-fullstack/booking-ui/Dockerfile -t booking-frontend:latest Booking-Project-fullstack
+        run: docker build -f booking-ui/Dockerfile -t booking-frontend:latest .
 
       # -------------------------------------------------
       # 8️⃣ Deploy with Docker Compose
       # -------------------------------------------------
       - name: Deploy with Docker Compose
         run: |
-          docker compose -f Booking-Project-fullstack/docker-compose.yml down --remove-orphans
-          docker compose -f Booking-Project-fullstack/docker-compose.yml up -d --build
+          docker compose down --remove-orphans
+          docker compose up -d --build
 
       # -------------------------------------------------
       # 9️⃣ Health check
