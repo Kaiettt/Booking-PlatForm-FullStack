@@ -13,13 +13,23 @@ jobs:
 
     steps:
       # -------------------------------------------------
-      # 1️⃣ Checkout source
+      # 1️⃣ Checkout repository
       # -------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # -------------------------------------------------
-      # 2️⃣ Cache Maven (backend) dependencies
+      # 2️⃣ Verify project structure (safety check)
+      # -------------------------------------------------
+      - name: Verify project structure
+        run: |
+          ls Booking-Project-fullstack
+          ls Booking-Project-fullstack/booking-ui
+          ls Booking-Project-fullstack/Accomodation-Booking-OTA
+          ls Booking-Project-fullstack/nginx
+
+      # -------------------------------------------------
+      # 3️⃣ Cache Maven (backend)
       # -------------------------------------------------
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -30,7 +40,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       # -------------------------------------------------
-      # 3️⃣ Cache npm (frontend) dependencies
+      # 4️⃣ Cache npm (frontend)
       # -------------------------------------------------
       - name: Cache npm modules
         uses: actions/cache@v4
@@ -41,7 +51,7 @@ jobs:
             ${{ runner.os }}-npm-
 
       # -------------------------------------------------
-      # 4️⃣ Create .env for the backend
+      # 5️⃣ Generate backend .env
       # -------------------------------------------------
       - name: Generate backend .env
         uses: DamianReeves/write-file-action@v1.3
@@ -64,35 +74,27 @@ jobs:
             VNPAY_HASH_SECRET=${{ secrets.VNPAY_HASH_SECRET }}
 
       # -------------------------------------------------
-      # 5️⃣ Build backend Docker image
+      # 6️⃣ Build backend Docker image (SINGLE LINE ✅)
       # -------------------------------------------------
       - name: Build backend image
-        run: |
-          docker build \
-            -f Booking-Project-fullstack/Accomodation-Booking-OTA/Dockerfile \
-            -t booking-backend:latest \
-            Booking-Project-fullstack
+        run: docker build -f Booking-Project-fullstack/Accomodation-Booking-OTA/Dockerfile -t booking-backend:latest Booking-Project-fullstack
 
       # -------------------------------------------------
-      # 6️⃣ Build frontend Docker image (FIXED ✅)
+      # 7️⃣ Build frontend Docker image (SINGLE LINE ✅)
       # -------------------------------------------------
       - name: Build frontend image
-        run: |
-          docker build \
-            -f Booking-Project-fullstack/booking-ui/Dockerfile \
-            -t booking-frontend:latest \
-            Booking-Project-fullstack
+        run: docker build -f Booking-Project-fullstack/booking-ui/Dockerfile -t booking-frontend:latest Booking-Project-fullstack
 
       # -------------------------------------------------
-      # 7️⃣ Deploy with Docker Compose
+      # 8️⃣ Deploy with Docker Compose
       # -------------------------------------------------
       - name: Deploy with Docker Compose
         run: |
-          docker compose -f ${{ env.COMPOSE_FILE }} down --remove-orphans
-          docker compose -f ${{ env.COMPOSE_FILE }} up -d --build
+          docker compose -f Booking-Project-fullstack/docker-compose.yml down --remove-orphans
+          docker compose -f Booking-Project-fullstack/docker-compose.yml up -d --build
 
       # -------------------------------------------------
-      # 8️⃣ Health check
+      # 9️⃣ Health check
       # -------------------------------------------------
       - name: Verify services are healthy
         run: |
@@ -100,7 +102,7 @@ jobs:
           curl -f http://localhost:8080/actuator/health
 
       # -------------------------------------------------
-      # 9️⃣ Cleanup
+      # 🔟 Cleanup
       # -------------------------------------------------
       - name: Prune unused images
         if: always()
