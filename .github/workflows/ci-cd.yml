@@ -78,7 +78,7 @@ jobs:
       - name: Build frontend image
         working-directory: booking-ui
         run: |
-          docker build -t booking-frontend:latest .
+          docker build -f booking-ui/Dockerfile -t booking-frontend:latest .
 
       # -------------------------------------------------
       # 7️⃣ Bring the whole stack up with Docker‑Compose
