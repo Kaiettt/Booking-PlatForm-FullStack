@@ -3,22 +3,22 @@ FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /app
 
-# Copy source code + build files
+# Install Maven
+RUN apk add --no-cache maven
+
+# Copy source code
 COPY . .
 
-# Build jar (skip test cho nhanh)
-# Ensure the Maven wrapper is executable
-RUN chmod +x mvnw && \
-    ./mvnw clean package -DskipTests
+# Build jar (skip tests)
+RUN mvn clean package -DskipTests
 
 # ===== STAGE 2: Run =====
 FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# Copy jar từ stage build
+# Copy jar from build stage
 COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8080
-
 ENTRYPOINT ["java", "-jar", "app.jar"]
