@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { FiMail, FiLock, FiUser } from "react-icons/fi";
+import { FiMail, FiLock, FiUser, FiPhone } from "react-icons/fi";
 import AuthCard from "../components/AuthCard";
 import AuthInput from "../components/AuthInput";
+import { authService } from "../services/auth.service";
+import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import Footer from "@/shared/components/layout/Footer";
 import RawHeader from "@/shared/components/layout/RawHeader";
 
@@ -12,6 +15,7 @@ export default function SignupPage() {
         firstName: '',
         lastName: '',
         email: '',
+        phoneNumber: '',
         password: '',
         confirmPassword: ''
     });
@@ -21,16 +25,33 @@ export default function SignupPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const navigate = useNavigate();
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (formData.password !== formData.confirmPassword) {
-            alert("Passwords don't match!");
+            toast.error("Passwords don't match!");
             return;
         }
         setIsLoading(true);
-        // Handle signup logic
-        console.log('Signup form submitted:', formData);
-        setTimeout(() => setIsLoading(false), 1500);
+        console.log("Signup form submitting...", formData); // Debug log
+        try {
+            console.log("Calling authService.signup..."); // Debug log
+            await authService.signup({
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                password: formData.password,
+                phoneNumber: formData.phoneNumber
+            });
+            toast.success("Signup successful! Please login.");
+            navigate("/login");
+        } catch (error) {
+            console.error(error);
+            toast.error("Signup failed. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleGoogleSignIn = () => {
@@ -80,6 +101,16 @@ export default function SignupPage() {
                         icon={<FiMail className="text-gray-400" />}
                     />
 
+                    <AuthInput
+                        label="Phone Number"
+                        type="tel"
+                        name="phoneNumber"
+                        value={formData.phoneNumber}
+                        onChange={handleChange}
+                        placeholder="0123456789"
+                        icon={<FiPhone className="text-gray-400" />}
+                    />
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 -mt-2">
                         <AuthInput
                             label="Password"
@@ -121,6 +152,7 @@ export default function SignupPage() {
 
                     <button
                         type="submit"
+                        onClick={() => console.log("Submit button clicked")}
                         disabled={isLoading}
                         className={`
                             w-full py-2 px-4 rounded-lg font-medium text-white

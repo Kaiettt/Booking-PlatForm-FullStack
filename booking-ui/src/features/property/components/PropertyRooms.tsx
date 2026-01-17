@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { User, Bed, Minus, Plus, Check } from 'lucide-react';
 import { RoomAmenities } from './RoomAmenities';
 import { RoomFacilities } from './RoomFacilities';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import type { RoomType } from '@/features/room/room-type.type';
 import type { Reservation } from '@/features/booking/types/type';
 import { useHoldRooms } from '../hooks/useHoldRooms.hooks';
+import { useAuthStore } from '@/stores/auth.store';
+import { toast } from 'react-hot-toast';
 
 interface Props {
     roomTypes: RoomType[];
@@ -25,6 +27,8 @@ interface SelectedRooms {
 
 export default function PropertyRooms({ roomTypes, availability }: Props) {
     const navigate = useNavigate();
+    const location = useLocation();
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const [selectedRooms, setSelectedRooms] = useState<SelectedRooms>({});
     const { holdRooms, isLoading } = useHoldRooms();
     if (!roomTypes || roomTypes.length === 0) return null;
@@ -55,6 +59,11 @@ export default function PropertyRooms({ roomTypes, availability }: Props) {
     };
 
     const handleReserve = async () => {
+        if (!isAuthenticated) {
+            toast.error("Please login to reserve a room");
+            navigate("/login", { state: { from: location } });
+            return;
+        }
         const reservations: Reservation[] = [];
 
         // Data preparation

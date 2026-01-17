@@ -16,13 +16,16 @@ import lombok.RequiredArgsConstructor;
 import com.booking.KBookin.config.Common;
 import com.booking.KBookin.dto.auth.GoogleUserInfo;
 import com.booking.KBookin.dto.auth.LoginResponce;
+import com.booking.KBookin.dto.auth.SignupRequest;
+import com.booking.KBookin.dto.auth.SignupResponce;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+
 @RequiredArgsConstructor
 @Service
 public class AuthenicationService {
@@ -31,6 +34,8 @@ public class AuthenicationService {
     private final EmailService emailService;
     private final ConfirmationService confirmationService;
     private final OauthVerifier oAuthVerifier;
+    private final PasswordEncoder passwordEncoder;
+
     public LoginResponce getAccessToken(String refreshToken) throws EntityExistsException {
         User user = this.userService.getUserByRefreshToken(refreshToken);
         User userLogin = User.builder()
@@ -43,11 +48,10 @@ public class AuthenicationService {
                 .status(user.getStatus())
                 .build();
 
-        String accessToken = this.securityUtil.createAccessTokenToken(user.getEmail(),user);
+        String accessToken = this.securityUtil.createAccessTokenToken(user.getEmail(), user);
         String newRefreshToken = this.securityUtil.createRefreshToken(user.getEmail(), user);
         user.setRefreshToken(newRefreshToken);
         this.userService.updateUser(user);
-
 
         return LoginResponce.builder()
                 .accessToken(accessToken)
@@ -83,7 +87,6 @@ public class AuthenicationService {
                 .build();
     }
 
-
     public ResponseCookie getCookie(String refreshToken) {
         return ResponseCookie.from("refresh-token", refreshToken)
                 .httpOnly(true)
@@ -94,50 +97,50 @@ public class AuthenicationService {
     }
 
     public LoginResponce handleGoogleLogin(String idTokenString) {
-            GoogleUserInfo info = oAuthVerifier.verify(idTokenString);
-            String email = info.getEmail();
+        GoogleUserInfo info = oAuthVerifier.verify(idTokenString);
+        String email = info.getEmail();
 
-            User user = userService.getUserByEmail(email);
+        User user = userService.getUserByEmail(email);
 
-            boolean isUserNoExist = false;
-            // 2) Nếu user chưa tồn tại -> tạo mới
-            if (user == null) {
-                isUserNoExist = true;
-                user = new User();
-                user.setEmail(email);
-                user.setRole(UserRole.GUEST);
-                user.setStatus(UserStatus.ACTIVE);
-                user.setIsEmailVerified(info.isEmailVerified());
-                user.setFullName(info.getName());
-                user.setPasswordHash(Common.OAUTH_PROVIDER_PASSWORD);
-                user.setIsPhoneVerified(false);
-                user.setProvider(AuthProvider.GOOGLE);
-            }
+        boolean isUserNoExist = false;
+        // 2) Nếu user chưa tồn tại -> tạo mới
+        if (user == null) {
+            isUserNoExist = true;
+            user = new User();
+            user.setEmail(email);
+            user.setRole(UserRole.GUEST);
+            user.setStatus(UserStatus.ACTIVE);
+            user.setIsEmailVerified(info.isEmailVerified());
+            user.setFullName(info.getName());
+            user.setPasswordHash(Common.OAUTH_PROVIDER_PASSWORD);
+            user.setIsPhoneVerified(false);
+            user.setProvider(AuthProvider.GOOGLE);
+        }
 
-            // 3) Sinh access + refresh token giống flow bình thường
-            String accessToken = this.securityUtil.createAccessTokenToken(email, user);
-            String refreshToken = this.securityUtil.createRefreshToken(email, user);
-            user.setRefreshToken(refreshToken);
-            if(isUserNoExist){
-                user = this.userService.saveUser(user);
-            }
+        // 3) Sinh access + refresh token giống flow bình thường
+        String accessToken = this.securityUtil.createAccessTokenToken(email, user);
+        String refreshToken = this.securityUtil.createRefreshToken(email, user);
+        user.setRefreshToken(refreshToken);
+        if (isUserNoExist) {
+            user = this.userService.saveUser(user);
+        }
 
-            // 5) Tạo user object trả về (tuỳ theo LoginResponce bạn dùng)
-            User userLogin = User.builder()
-                    .id(user.getId())
-                    .fullName(user.getFullName())
-                    .email(user.getEmail())
-                    .role(user.getRole())
-                    .phoneNumber(user.getPhoneNumber())
-                    .isPhoneVerified(user.getIsPhoneVerified())
-                    .isEmailVerified(user.getIsEmailVerified())
-                    .status(user.getStatus())
-                    .build();
-            return LoginResponce.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
-                    .user(userLogin)
-                    .build();
+        // 5) Tạo user object trả về (tuỳ theo LoginResponce bạn dùng)
+        User userLogin = User.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .phoneNumber(user.getPhoneNumber())
+                .isPhoneVerified(user.getIsPhoneVerified())
+                .isEmailVerified(user.getIsEmailVerified())
+                .status(user.getStatus())
+                .build();
+        return LoginResponce.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .user(userLogin)
+                .build();
     }
 
     public void createEmailTokenverification(String email) {
@@ -146,24 +149,52 @@ public class AuthenicationService {
             throw new EntityNotFoundException("User not found with email: " + email);
         }
         long verificationToken = this.confirmationService.createNewEmailVerficationToken(user);
-        this.emailService.sendToken(email, user.getFullName(),verificationToken);
+        this.emailService.sendToken(email, user.getFullName(), verificationToken);
 
     }
 
-
     @Transactional
-    public void handleEmailConfirmation(long token,String email) {
-        ConfirmationToken confirmationToken = this.confirmationService.getConfirmationByTokenAndEmail(token,email);
-        if(confirmationToken.getConfirmedAt() != null){
+    public void handleEmailConfirmation(long token, String email) {
+        ConfirmationToken confirmationToken = this.confirmationService.getConfirmationByTokenAndEmail(token, email);
+        if (confirmationToken.getConfirmedAt() != null) {
             throw new VerificationException("email is already confirmed");
         }
-        if(confirmationToken.getExpiresAt().isBefore(LocalDateTime.now())){
+        if (confirmationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new VerificationException("email is already expired");
         }
-        this.confirmationService.confirmToken(token,email);
+        this.confirmationService.confirmToken(token, email);
         User user = this.userService.getUserById(confirmationToken.getUser().getId());
         user.setIsEmailVerified(true);
         this.userService.saveUser(user);
 
+    }
+
+    public SignupResponce handleSignupUser(SignupRequest request) {
+        User user = this.userService.getUserByEmail(request.getEmail());
+        if (user != null) {
+            throw new EntityExistsException("User with email " + request.getEmail() + " already exists");
+        }
+
+        User newUser = User.builder()
+                .fullName(request.getFirstName() + " " + request.getLastName())
+                .email(request.getEmail())
+                .passwordHash(this.passwordEncoder.encode(request.getPassword()))
+                .phoneNumber(request.getPhoneNumber())
+                .role(UserRole.GUEST)
+                .status(UserStatus.ACTIVE)
+                .isEmailVerified(false)
+                .isPhoneVerified(false)
+                .provider(AuthProvider.GOOGLE)
+                .build();
+
+        newUser = this.userService.saveUser(newUser);
+
+        return SignupResponce.builder()
+                .userId(newUser.getId().toString())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(newUser.getEmail())
+                .phoneNumber(newUser.getPhoneNumber())
+                .build();
     }
 }

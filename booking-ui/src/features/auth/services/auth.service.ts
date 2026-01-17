@@ -1,6 +1,7 @@
 import { get, post } from '@/services/apiClient'
 import { tokenService } from '@/services/token.service'
 import type { LoginRequest, LoginResponse } from '../types/login.type'
+import type { SignupRequest, SignupResponse } from '../types/signup.type'
 import { useAuthStore } from '@/stores/auth.store'
 
 export const authService = {
@@ -28,6 +29,11 @@ export const authService = {
         const response = await get<LoginResponse>('/auth/refresh')
         useAuthStore.getState().setUser(response.user)
         return response
+    },
+
+    async signup(signupRequest: SignupRequest): Promise<SignupResponse> {
+        const response = await post<SignupResponse>('/auth/signup', signupRequest);
+        return response;
     },
 
     async logout(): Promise<void> {
