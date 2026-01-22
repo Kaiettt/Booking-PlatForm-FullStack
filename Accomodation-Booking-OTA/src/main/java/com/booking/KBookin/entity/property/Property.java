@@ -53,7 +53,7 @@ public class Property extends BaseEntity {
     @JoinColumn(
             name = "host_id",
             nullable = false,
-            columnDefinition = "bigint default 1"
+            columnDefinition = "bigint default 3"
     )
     private User host;
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
