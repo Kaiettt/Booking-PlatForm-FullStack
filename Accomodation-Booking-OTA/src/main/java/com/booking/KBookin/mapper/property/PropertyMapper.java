@@ -2,6 +2,7 @@ package com.booking.KBookin.mapper.property;
 
 import com.booking.KBookin.dto.media.MediaDTO;
 import com.booking.KBookin.dto.property.PropertyAmenityDTO;
+import com.booking.KBookin.dto.property.PropertyCreateRequest;
 import com.booking.KBookin.dto.property.PropertyDetailResponseDTO;
 import com.booking.KBookin.dto.property.PropertyFacilityDTO;
 import com.booking.KBookin.dto.review.ReviewResponseDTO;
@@ -11,6 +12,8 @@ import com.booking.KBookin.entity.property.Property;
 import com.booking.KBookin.entity.property.PropertyAmenity;
 import com.booking.KBookin.entity.property.PropertyFacility;
 import com.booking.KBookin.entity.review.Review;
+import com.booking.KBookin.entity.user.User;
+import com.booking.KBookin.mapper.LocationMapper;
 import com.booking.KBookin.mapper.room.RoomTypeMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -20,7 +23,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
-@Mapper(componentModel = "spring", uses = {RoomTypeMapper.class})
+@Mapper(componentModel = "spring", uses = {RoomTypeMapper.class, LocationMapper.class})
 public interface PropertyMapper {
 
     // Ánh xạ chi tiết Property (searchRoomTypeWithFilter)
@@ -65,4 +68,14 @@ public interface PropertyMapper {
                 .map(Media::getUrl)
                 .orElse(null);
     }
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status", constant = "DRAFT") // Default status for registration
+    @Mapping(target = "reviews", ignore = true)
+    @Mapping(target = "roomTypes", ignore = true)
+    @Mapping(target = "amenities", ignore = true)
+    @Mapping(target = "facilities", ignore = true)
+    @Mapping(target = "media", ignore = true)
+    @Mapping(source = "host", target = "host")
+    Property fromCreateDtoToEntity(PropertyCreateRequest propertyCreateRequest, User host);
 }

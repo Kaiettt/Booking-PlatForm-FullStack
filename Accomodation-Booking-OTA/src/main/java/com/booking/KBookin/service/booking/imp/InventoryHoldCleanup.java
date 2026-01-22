@@ -23,27 +23,34 @@ import java.util.Map;
 public class InventoryHoldCleanup {
     private final InventoryHoldRepository inventoryHoldRepository;
     private final RoomInventoryRepository roomInventoryRepository;
+
     @Transactional
     @Scheduled(fixedDelayString = "${inventory.cleanup.delay-ms:60000}")
-    public void cleanupExpiredInventoryHolds(){
+    public void cleanupExpiredInventoryHolds() {
         LocalDateTime now = LocalDateTime.now();
         List<InventoryHold> expiredHolds = this.inventoryHoldRepository.findExpiredHolds(now);
-        if(expiredHolds.isEmpty()){
+        if (expiredHolds.isEmpty()) {
             return;
         }
         log.info("Found {} expired inventory holds to process.", expiredHolds.size());
-        Map<InventoryReleaseKey,Integer> releaseMap = new HashMap<>();
+        Map<InventoryReleaseKey, Integer> releaseMap = new HashMap<>();
 
-        for(InventoryHold inventoryHold: expiredHolds){
-            for(InventoryHoldDetail inventoryHoldDetail:inventoryHold.getInventoryHoldDetails()){
-                InventoryReleaseKey key = new InventoryReleaseKey(inventoryHoldDetail.getRoomType().getId(),inventoryHold.getCheckIn().toLocalDate(),inventoryHold.getCheckOut().toLocalDate());
-                releaseMap.merge(key,inventoryHoldDetail.getQuantity(),Integer::sum);
+        for (InventoryHold inventoryHold : expiredHolds) {
+            for (InventoryHoldDetail inventoryHoldDetail : inventoryHold.getInventoryHoldDetails()) {
+                InventoryReleaseKey key = new InventoryReleaseKey(inventoryHoldDetail.getRoomType().getId(),
+                        inventoryHold.getCheckIn().toLocalDate(), inventoryHold.getCheckOut().toLocalDate());
+                releaseMap.merge(key, inventoryHoldDetail.getQuantity(), Integer::sum);
             }
         }
-        for(Map.Entry<InventoryReleaseKey,Integer> entry : releaseMap.entrySet()){
+        releaseMap.forEach((key, value) -> {
+            this.roomInventoryRepository.updateAfterReleaseHolds(value, key.roomTypeId(), key.checkInDate(),
+                    key.checkOutDate());
+        });
+        for (Map.Entry<InventoryReleaseKey, Integer> entry : releaseMap.entrySet()) {
             InventoryReleaseKey inventoryReleaseKey = entry.getKey();
             Integer quantity = entry.getValue();
-            this.roomInventoryRepository.updateAfterReleaseHolds(quantity,inventoryReleaseKey.roomTypeId(),inventoryReleaseKey.checkInDate(),inventoryReleaseKey.checkOutDate());
+            this.roomInventoryRepository.updateAfterReleaseHolds(quantity, inventoryReleaseKey.roomTypeId(),
+                    inventoryReleaseKey.checkInDate(), inventoryReleaseKey.checkOutDate());
         }
         List<Long> holdIds = expiredHolds.stream()
                 .map(InventoryHold::getId)

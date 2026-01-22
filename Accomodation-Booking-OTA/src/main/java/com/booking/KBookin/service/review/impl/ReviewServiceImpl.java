@@ -15,7 +15,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.stereotype.Service;
+
 @RequiredArgsConstructor
 @Service
 public class ReviewServiceImpl implements ReviewService {
@@ -24,6 +28,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final PropertyRepository propertyRepository;
     private final ReviewMapper reviewMapper;
     private final ReviewEventProducer reviewEventProducer;
+
     @Transactional
     @Override
     public ReviewResponseDTO createNewReview(ReviewCreateRequest reviewCreateRequest) {
@@ -46,5 +51,10 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new EntityNotFoundException("Property not found"));
         property.recalculateRating(reviewDTO.getRating());
         this.propertyRepository.save(property);
+    }
+
+    @Override
+    public List<ReviewResponseDTO> getAllReviewByPropertyId(Long propertyId) {
+        return null;
     }
 }
