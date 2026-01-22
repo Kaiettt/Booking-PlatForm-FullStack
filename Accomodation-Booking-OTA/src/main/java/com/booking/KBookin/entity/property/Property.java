@@ -50,7 +50,11 @@ public class Property extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private PropertyStatus status;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "host_id", nullable = false)
+    @JoinColumn(
+            name = "host_id",
+            nullable = false,
+            columnDefinition = "bigint default 1"
+    )
     private User host;
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
