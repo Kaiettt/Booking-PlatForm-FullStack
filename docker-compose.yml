@@ -81,6 +81,21 @@ services:
     restart: always
     networks:
       - npm_network
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: always
+    networks:
+      - npm_network
+    ports:
+      - "9000:9000"    # API Port
+      - "9001:9001"    # Web Console Port
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123 # Change this for production!
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
 
 networks:
   npm_network:
@@ -90,3 +105,4 @@ networks:
 volumes:
   my_postgres14_data:
     external: true
+  minio_data:

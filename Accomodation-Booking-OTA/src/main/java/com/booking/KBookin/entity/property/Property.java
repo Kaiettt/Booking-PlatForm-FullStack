@@ -6,6 +6,7 @@ import com.booking.KBookin.entity.media.Media;
 import com.booking.KBookin.entity.review.Review;
 import com.booking.KBookin.entity.room.RoomType;
 import com.booking.KBookin.entity.location.Address;
+import com.booking.KBookin.entity.user.User;
 import com.booking.KBookin.enumerate.property.PropertyStatus;
 import com.booking.KBookin.enumerate.property.PropertyType;
 import com.booking.KBookin.repository.property.impl.PropertySearchResultImpl;
@@ -48,6 +49,9 @@ public class Property extends BaseEntity {
     private PropertyType type;
     @Enumerated(EnumType.STRING)
     private PropertyStatus status;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_id", nullable = false)
+    private User host;
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<Review> reviews = new HashSet<>();
@@ -88,5 +92,11 @@ public class Property extends BaseEntity {
         Double newTotalScore = (this.avgRating * this.totalRating) + newRating;
         this.totalRating += 1;
         this.avgRating = newTotalScore / this.totalRating;
+    }
+
+    public void handleCreateProperty() {
+        this.status = PropertyStatus.DRAFT;
+        if (this.avgRating == null) this.avgRating = 0.0;
+        if (this.totalRating == null) this.totalRating = 0;
     }
 }
