@@ -55,7 +55,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
-    @ApiMessage("Signup succesfully")
+    @ApiMessage("Signup successfully")
     public ResponseEntity<SignupResponce> login(@Valid @RequestBody SignupRequest request) {
 
         SignupResponce user = this.authenicationService.handleSignupUser(request);

@@ -13,7 +13,7 @@ import com.booking.KBookin.entity.property.PropertyAmenity;
 import com.booking.KBookin.entity.property.PropertyFacility;
 import com.booking.KBookin.entity.review.Review;
 import com.booking.KBookin.entity.user.User;
-import com.booking.KBookin.mapper.LocationMapper;
+import com.booking.KBookin.mapper.location.LocationMapper;
 import com.booking.KBookin.mapper.room.RoomTypeMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -70,12 +70,15 @@ public interface PropertyMapper {
     }
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "status", constant = "DRAFT") // Default status for registration
+    @Mapping(target = "status", constant = "DRAFT") // Default status
     @Mapping(target = "reviews", ignore = true)
     @Mapping(target = "roomTypes", ignore = true)
     @Mapping(target = "amenities", ignore = true)
     @Mapping(target = "facilities", ignore = true)
     @Mapping(target = "media", ignore = true)
+// Explicitly map the host parameter to the property's host field
     @Mapping(source = "host", target = "host")
+// Delegate the nested DTO mapping to LocationMapper
+    @Mapping(source = "propertyCreateRequest.address", target = "address")
     Property fromCreateDtoToEntity(PropertyCreateRequest propertyCreateRequest, User host);
 }
