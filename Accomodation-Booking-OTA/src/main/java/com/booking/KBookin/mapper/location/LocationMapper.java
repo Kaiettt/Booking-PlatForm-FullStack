@@ -1,4 +1,4 @@
-package com.booking.KBookin.mapper;
+package com.booking.KBookin.mapper.location;
 
 import com.booking.KBookin.dto.location.AddressCreateDTO;
 import com.booking.KBookin.dto.location.GeoLocationCreateDTO;

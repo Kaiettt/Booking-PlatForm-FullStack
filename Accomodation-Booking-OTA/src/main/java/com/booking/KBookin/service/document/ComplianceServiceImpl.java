@@ -10,7 +10,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
+import com.booking.KBookin.config.MinioBucketConfig;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -21,9 +21,7 @@ public class ComplianceServiceImpl implements DocumentService{
     private final ResourceService resourceService;
     private final ComplianceDocumentRepository complianceDocumentRepository;
     private final PropertyRepository propertyRepository;
-
-    @Value("${minio.bucket.compliance}")
-    private String complianceBucket;
+    private final MinioBucketConfig minioBucketConfig;
     @Override
     public Long updatePropertyDocument(Long propertyId, PropertyDocumentCreateRequest request) {
         Property property = this.propertyRepository.findById(propertyId)
@@ -36,7 +34,7 @@ public class ComplianceServiceImpl implements DocumentService{
                     docDto.getType(),
                     UUID.randomUUID().toString().substring(0, 8),
                     fileExtension);
-            resourceService.uploadFile(complianceBucket, objectKey, docDto.getFile());
+            resourceService.uploadFile(minioBucketConfig.getCompliance(), objectKey, docDto.getFile());
             complianceDocumentList.add(ComplianceDocument.builder()
                     .property(property)
                     .type(docDto.getType())
