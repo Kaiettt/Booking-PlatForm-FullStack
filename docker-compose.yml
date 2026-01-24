@@ -62,6 +62,8 @@ services:
     build: ./Accomodation-Booking-OTA
     container_name: spring-app
     env_file: ./Accomodation-Booking-OTA/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
     depends_on:
       postgres:
         condition: service_healthy
