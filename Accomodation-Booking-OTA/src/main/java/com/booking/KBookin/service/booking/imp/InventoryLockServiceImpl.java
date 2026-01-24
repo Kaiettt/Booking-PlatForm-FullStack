@@ -46,69 +46,10 @@ public class InventoryLockServiceImpl implements InventoryLockService {
             );
         }
 
+        Map<Long, Integer> roomTypeQuantityMap = aggregateRoomRequirements(request);
         LocalDate checkInDate = request.getCheckIn().toLocalDate();
         LocalDate checkOutDate = request.getCheckOut().toLocalDate();
-
-        Map<Long, Integer> roomTypeQuantityMap =
-                request.getLockRoomRequestDetail()
-                        .stream()
-                        .collect(Collectors.toMap(
-                                LockRoomRequestDetailDTO::getRoomTypeId,
-                                LockRoomRequestDetailDTO::getQuantity,
-                                Integer::sum
-                        ));
-
-        List<RoomInventory> lockedInventories = new ArrayList<>();
-
-        for (Map.Entry<Long, Integer> entry : roomTypeQuantityMap.entrySet()) {
-
-            List<RoomInventory> inventories =
-                    roomInventoryRepository.findAndLockByRoomTypeIdAndDateRange(
-                            entry.getKey(),
-                            checkInDate,
-                            checkOutDate,
-                            entry.getValue()
-                    );
-
-            if (inventories.isEmpty()) {
-                throw new BusinessProcessException(
-                        "Not enough inventory for roomTypeId: " + entry.getKey()
-                );
-            }
-
-            lockedInventories.addAll(inventories);
-        }
-
-
-        long totalDays = ChronoUnit.DAYS.between(checkInDate, checkOutDate);
-        long expectedRecords = totalDays * roomTypeQuantityMap.size();
-
-        if (lockedInventories.size() != expectedRecords) {
-            throw new BusinessProcessException(
-                    "Missing inventory data for the specified date range"
-            );
-        }
-
-
-        for (RoomInventory inventory : lockedInventories) {
-
-            Long roomTypeId = inventory.getRoomType().getId();
-            int quantity = roomTypeQuantityMap.get(roomTypeId);
-
-            int available = inventory.getAvailableRooms();
-            if (available < quantity) {
-                throw new BusinessProcessException(
-                        String.format(
-                                "Not enough rooms on %s for roomTypeId %d",
-                                inventory.getDate(),
-                                roomTypeId
-                        )
-                );
-            }
-
-            inventory.setAvailableRooms(available - quantity);
-        }
-
+        List<RoomInventory> lockedInventories = this.processInventoryDeduction(roomTypeQuantityMap,checkInDate,checkOutDate);
         roomInventoryRepository.saveAll(lockedInventories);
 
 
@@ -126,12 +67,13 @@ public class InventoryLockServiceImpl implements InventoryLockService {
                 .build();
 
         for (Map.Entry<Long, Integer> entry : roomTypeQuantityMap.entrySet()) {
-
+            Long roomTypeId = entry.getKey();
+            Integer quantity = entry.getValue();
             InventoryHoldDetail detail = InventoryHoldDetail.builder()
                     .roomType(RoomType.builder()
-                            .id(entry.getKey())
+                            .id(roomTypeId)
                             .build())
-                    .quantity(entry.getValue())
+                    .quantity(quantity)
                     .build();
 
             inventoryHold.addDetail(detail);
@@ -142,4 +84,50 @@ public class InventoryLockServiceImpl implements InventoryLockService {
 
         return inventoryHoldMapper.toResponse(savedHold);
     }
+
+    private Map<Long, Integer> aggregateRoomRequirements(LockRoomRequestDTO request) {
+        return request.getLockRoomRequestDetail().stream()
+                .collect(Collectors.toMap(
+                        LockRoomRequestDetailDTO::getRoomTypeId,
+                        LockRoomRequestDetailDTO::getQuantity,
+                        Integer::sum
+                ));
+    }
+
+    private List<RoomInventory>  processInventoryDeduction(Map<Long, Integer> roomTypeQuantityMap, LocalDate checkInDate, LocalDate checkOutDate){
+        List<RoomInventory> lockedInventories = new ArrayList<>();
+        for (Map.Entry<Long, Integer> entry : roomTypeQuantityMap.entrySet()) {
+            Long roomTypeID = entry.getKey();
+            Integer quantity = entry.getValue();
+            List<RoomInventory> inventories =
+                    roomInventoryRepository.findAndLockByRoomTypeIdAndDateRange(
+                            roomTypeID,
+                            checkInDate,
+                            checkOutDate,
+                            quantity
+                    );
+            if (inventories.isEmpty()) {
+                throw new BusinessProcessException(
+                        "Not enough inventory for roomTypeId: " + entry.getKey()
+                );
+            }
+            lockedInventories.addAll(inventories);
+        }
+
+
+        long totalDays = ChronoUnit.DAYS.between(checkInDate, checkOutDate);
+        long expectedRecords = totalDays * roomTypeQuantityMap.size();
+
+        if (lockedInventories.size() != expectedRecords) {
+            throw new BusinessProcessException(
+                    "Missing inventory data for the specified date range"
+            );
+        }
+        for (RoomInventory inventory : lockedInventories) {
+            int quantity = roomTypeQuantityMap.get(inventory.getRoomType().getId());
+            inventory.decreaseAvailability(quantity);
+        }
+        return lockedInventories;
+    }
+
 }

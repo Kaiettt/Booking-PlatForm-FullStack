@@ -1,6 +1,7 @@
 package com.booking.KBookin.service.document;
 
 import com.booking.KBookin.dto.document.PropertyDocumentCreateRequest;
+import com.booking.KBookin.dto.property.PropertyCreateItemRequest;
 import com.booking.KBookin.entity.document.ComplianceDocument;
 import com.booking.KBookin.entity.property.Property;
 import com.booking.KBookin.repository.document.ComplianceDocumentRepository;
@@ -14,6 +15,8 @@ import com.booking.KBookin.config.MinioBucketConfig;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import static com.booking.KBookin.util.FileUtil.getFileExtension;
 
 @AllArgsConstructor
 @Service
@@ -46,9 +49,6 @@ public class ComplianceServiceImpl implements DocumentService{
         this.complianceDocumentRepository.saveAll(complianceDocumentList);
         return propertyId;
     }
-    private String getFileExtension(String fileName) {
-        if (fileName == null || !fileName.contains(".")) return "";
-        return fileName.substring(fileName.lastIndexOf("."));
-    }
+
 
 }
