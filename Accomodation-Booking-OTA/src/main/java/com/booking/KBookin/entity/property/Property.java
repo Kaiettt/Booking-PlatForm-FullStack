@@ -102,4 +102,8 @@ public class Property extends BaseEntity {
         if (this.avgRating == null) this.avgRating = 0.0;
         if (this.totalRating == null) this.totalRating = 0;
     }
+
+    public void handleCompleteRegister() {
+        this.status = PropertyStatus.PENDING;
+    }
 }

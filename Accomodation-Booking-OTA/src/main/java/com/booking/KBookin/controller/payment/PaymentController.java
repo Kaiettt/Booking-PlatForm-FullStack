@@ -1,6 +1,7 @@
 package com.booking.KBookin.controller.payment;
 
 import com.booking.KBookin.dto.payment.PaymentResponse;
+import com.booking.KBookin.enumerate.payment.PaymentMethod;
 import com.booking.KBookin.service.payment.PaymentService;
 import com.booking.KBookin.util.PaymentUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +26,7 @@ public class PaymentController {
 
         String paymentUrl = paymentService.createPayment(
                 PaymentUtil.getIpAddress(req),
-                params
+                params, PaymentMethod.VN_PAY
         );
 
         Map<String, Object> response = new HashMap<>();
