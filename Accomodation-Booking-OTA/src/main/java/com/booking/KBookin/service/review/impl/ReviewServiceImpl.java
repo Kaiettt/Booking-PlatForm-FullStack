@@ -1,5 +1,6 @@
 package com.booking.KBookin.service.review.impl;
 
+import com.booking.KBookin.dto.PageResponse;
 import com.booking.KBookin.dto.review.ReviewCreateRequest;
 import com.booking.KBookin.dto.review.ReviewResponseDTO;
 import com.booking.KBookin.entity.property.Property;
@@ -7,17 +8,18 @@ import com.booking.KBookin.entity.review.Review;
 import com.booking.KBookin.entity.user.User;
 import com.booking.KBookin.kafka.producer.review.ReviewEventProducer;
 import com.booking.KBookin.mapper.review.ReviewMapper;
+import com.booking.KBookin.repository.projection.review.ReviewProjection;
 import com.booking.KBookin.repository.property.PropertyRepository;
 import com.booking.KBookin.repository.review.ReviewRepository;
 import com.booking.KBookin.repository.user.UserRepository;
 import com.booking.KBookin.service.review.ReviewService;
-import jakarta.persistence.Column;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -56,5 +58,17 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public List<ReviewResponseDTO> getAllReviewByPropertyId(Long propertyId) {
         return null;
+    }
+
+    @Override
+    public PageResponse<List<ReviewProjection>> fetchPropertyReviewsById(long propertyId, Pageable pageable) {
+        Page<ReviewProjection> reviewsPage = this.reviewRepository.findByPropertyId(propertyId, pageable);
+
+        return PageResponse.<List<ReviewProjection>>builder()
+                .data(reviewsPage.getContent())
+                .totalElements(reviewsPage.getTotalElements())
+                .totalPages(reviewsPage.getTotalPages())
+                .currentPage(reviewsPage.getNumber())
+                .build();
     }
 }

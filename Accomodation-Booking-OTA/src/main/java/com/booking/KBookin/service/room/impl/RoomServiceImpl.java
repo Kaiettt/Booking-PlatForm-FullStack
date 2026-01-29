@@ -4,6 +4,7 @@ import com.booking.KBookin.entity.inventory.InventoryHold;
 import com.booking.KBookin.entity.room.Room;
 import com.booking.KBookin.repository.booking.InventoryHoldRepository;
 import com.booking.KBookin.repository.booking.RoomInventoryRepository;
+import com.booking.KBookin.repository.projection.room.RoomTypeHostProjection;
 import com.booking.KBookin.repository.room.RoomRepository;
 import com.booking.KBookin.repository.room.RoomTypeRepository;
 import com.booking.KBookin.service.room.RoomService;
@@ -63,6 +64,11 @@ public class RoomServiceImpl implements RoomService {
     @Override
     public void releaseRoomInventory(Integer quantity, Long roomTypeId, LocalDate checkIn, LocalDate checkOut) {
         this.roomInventoryRepository.updateAfterReleaseHolds(quantity,roomTypeId,checkIn,checkOut);
+    }
+
+    @Override
+    public List<RoomTypeHostProjection> fetchPropertyRoomsById(long propertyId) {
+        return this.roomTypeRepository.findRoomsByPropertyId(propertyId);
     }
 
 }

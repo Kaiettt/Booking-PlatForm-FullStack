@@ -1,11 +1,15 @@
 package com.booking.KBookin.repository.property;
 
 import com.booking.KBookin.entity.property.Property;
+import com.booking.KBookin.repository.projection.property.PropertyHostProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
 
 public interface PropertyRepository extends JpaRepository<Property, Long> {
 
@@ -40,4 +44,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     );
 
 
+    @EntityGraph(attributePaths = {"host", "media", "amenities", "facilities"})
+    @Query("SELECT p FROM Property p where p.id = :id")
+    Optional<PropertyHostProjection> findHostViewPropertyById(@Param("id") Long id);
 }

@@ -25,7 +25,7 @@ public class MediaServiceImpl implements MediaService {
     public void updatePropertyImages(List<MultipartFile> images, Property property) {
         for (MultipartFile file : images) {
             String fileExtension = getFileExtension(file.getOriginalFilename());
-            String objectKey = String.format("images/%d/%s_%s%s",
+            String objectKey = String.format("property-images/%d/%s_%s%s",
                     property.getId(),
                     DocumentType.PROPERTY_DEED,
                     UUID.randomUUID().toString().substring(0, 8),

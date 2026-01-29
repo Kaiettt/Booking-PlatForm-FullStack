@@ -13,10 +13,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -61,7 +58,7 @@ public class RoomType extends BaseEntity {
     )
     @BatchSize(size = 20)
     @Builder.Default
-    private Set<RoomAmenity> amenities = new HashSet<>();
+    private Set<RoomAmenity> amenities = new LinkedHashSet<>();
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
@@ -71,12 +68,12 @@ public class RoomType extends BaseEntity {
     )
     @BatchSize(size = 20)
     @Builder.Default
-    private Set<RoomFacility> facilities = new HashSet<>();
+    private Set<RoomFacility> facilities = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 20)
     @Builder.Default
-    private List<RoomTypeMedia> media = new ArrayList<>();
+    private Set<RoomTypeMedia> media = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     @BatchSize(size = 20)
