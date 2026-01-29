@@ -35,9 +35,13 @@ public class CancelServiceImpl implements CancelService {
                 .build();
         cancellation.handleCancelBooking(booking);
         Cancellation savedCancellation = this.cancellationRepository.save(cancellation);
-        for(BookingItem item : booking.getBookingItems()){
-            this.roomService.releaseRoomInventory(item.getQuantity(),item.getRoomType().getId(),booking.getCheckIn(),booking.getCheckOut());
-        }
+        booking.getBookingItems().forEach(item ->
+                this.roomService.releaseRoomInventory(
+                        item.getQuantity(),
+                        item.getRoomType().getId(),
+                        booking.getCheckIn(),
+                        booking.getCheckOut())
+                );;
         this.bookingRepository.save(booking);
         CancellationResponse cancellationResponse = this.cancellationMapper.toResponse(savedCancellation);
         this.emailCancelBookingProducer.sendCancelBooking(cancellationResponse);

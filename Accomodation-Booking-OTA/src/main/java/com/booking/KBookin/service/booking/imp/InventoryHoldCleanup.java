@@ -46,12 +46,6 @@ public class InventoryHoldCleanup {
             this.roomInventoryRepository.updateAfterReleaseHolds(value, key.roomTypeId(), key.checkInDate(),
                     key.checkOutDate());
         });
-        for (Map.Entry<InventoryReleaseKey, Integer> entry : releaseMap.entrySet()) {
-            InventoryReleaseKey inventoryReleaseKey = entry.getKey();
-            Integer quantity = entry.getValue();
-            this.roomInventoryRepository.updateAfterReleaseHolds(quantity, inventoryReleaseKey.roomTypeId(),
-                    inventoryReleaseKey.checkInDate(), inventoryReleaseKey.checkOutDate());
-        }
         List<Long> holdIds = expiredHolds.stream()
                 .map(InventoryHold::getId)
                 .toList();

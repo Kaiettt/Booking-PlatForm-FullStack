@@ -3,6 +3,7 @@ package com.booking.KBookin.service.property.impl;
 import com.booking.KBookin.config.MinioBucketConfig;
 import com.booking.KBookin.dto.property.PropertyCreateItemRequest;
 import com.booking.KBookin.dto.property.PropertyCreateRequest;
+import com.booking.KBookin.dto.property.PropertyDetailResponseDTO;
 import com.booking.KBookin.dto.property.PropertyResponseDTO;
 import com.booking.KBookin.entity.property.Property;
 import com.booking.KBookin.entity.property.PropertyAmenity;
@@ -10,6 +11,7 @@ import com.booking.KBookin.entity.property.PropertyFacility;
 import com.booking.KBookin.entity.user.User;
 import com.booking.KBookin.mapper.property.PropertyMapper;
 import com.booking.KBookin.repository.document.ComplianceDocumentRepository;
+import com.booking.KBookin.repository.projection.property.PropertyHostProjection;
 import com.booking.KBookin.repository.property.PropertyAmenityRepository;
 import com.booking.KBookin.repository.property.PropertyFacilityRepository;
 import com.booking.KBookin.repository.property.PropertyRepository;
@@ -20,6 +22,7 @@ import com.booking.KBookin.service.resource.ResourceService;
 import com.booking.KBookin.service.user.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -64,5 +67,16 @@ public class PropertyServiceImpl implements PropertyService {
         }
         property.handleCompleteRegister();
         return propertyRepository.save(property).getId();
+    }
+
+    @Cacheable(
+            value = "property",
+            key = "#id"
+    )
+    @Override
+    public PropertyHostProjection fetchPropertyIdById(long id) {
+        return this.propertyRepository.findHostViewPropertyById(id).
+                orElseThrow(() -> new EntityNotFoundException("Property not found"));
+
     }
 }

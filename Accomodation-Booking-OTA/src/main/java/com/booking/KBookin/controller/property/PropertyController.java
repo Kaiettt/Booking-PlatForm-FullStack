@@ -1,10 +1,18 @@
 package com.booking.KBookin.controller.property;
 
+import com.booking.KBookin.dto.PageResponse;
 import com.booking.KBookin.dto.document.PropertyDocumentCreateRequest;
 import com.booking.KBookin.dto.property.PropertyCreateItemRequest;
 import com.booking.KBookin.dto.property.PropertyCreateRequest;
+import com.booking.KBookin.dto.property.PropertyDetailResponseDTO;
+import com.booking.KBookin.dto.review.ReviewResponseDTO;
+import com.booking.KBookin.repository.projection.property.PropertyHostProjection;
+import com.booking.KBookin.repository.projection.review.ReviewProjection;
+import com.booking.KBookin.repository.projection.room.RoomTypeHostProjection;
 import com.booking.KBookin.service.document.DocumentService;
 import com.booking.KBookin.service.property.PropertyService;
+import com.booking.KBookin.service.review.ReviewService;
+import com.booking.KBookin.service.room.RoomService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
@@ -13,7 +21,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import org.springframework.data.domain.Pageable;
 import java.net.URI;
+import java.util.List;
 
 
 @AllArgsConstructor
@@ -22,6 +32,13 @@ import java.net.URI;
 public class PropertyController {
     private final PropertyService propertyService;
     private final DocumentService documentService;
+    private final RoomService roomService;
+    private final ReviewService reviewService;
+    @PreAuthorize("hasAnyRole('HOST', 'ADMIN')")
+    @GetMapping("/{id}")
+    public ResponseEntity<PropertyHostProjection> findPropertyById(@PathVariable long id){
+        return ResponseEntity.ok(this.propertyService.fetchPropertyIdById(id));
+    }
     @PreAuthorize("hasRole('HOST')")
     @PostMapping
     public ResponseEntity<Long> createProperty(
@@ -66,5 +83,16 @@ public class PropertyController {
                 .toUri();
 
         return ResponseEntity.ok(updatedPropertyId);
+    }
+    @PreAuthorize("hasAnyRole('HOST', 'ADMIN')")
+    @GetMapping("/room-type/{propertyId}")
+    public ResponseEntity<List<RoomTypeHostProjection>> findPropertyRoomsById(@PathVariable long propertyId){
+        return ResponseEntity.ok(this.roomService.fetchPropertyRoomsById(propertyId));
+    }
+
+    @PreAuthorize("hasAnyRole('HOST', 'ADMIN')")
+    @GetMapping("/reviews/{propertyId}")
+    public ResponseEntity<PageResponse<List<ReviewProjection>>> findPropertyReviewsById(@PathVariable long propertyId, Pageable pageable){
+        return ResponseEntity.ok(this.reviewService.fetchPropertyReviewsById(propertyId,pageable));
     }
 }

@@ -26,14 +26,10 @@ public class PropertyDetailResponseDTO {
     private String status;
     private Double avgRating;
     private Integer totalRating;
-
-    // Thêm trường minPrice nếu cần, đây là lợi thế khi dùng class
     private Double minPrice;
-
     private List<MediaDTO> media;
     private List<PropertyAmenityDTO> amenities;
     private List<PropertyFacilityDTO> facilities;
     private List<RoomTypeDTO> roomTypes;
     private List<ReviewResponseDTO> reviews;
-
 }
