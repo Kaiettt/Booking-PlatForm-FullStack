@@ -20,4 +20,12 @@ public class Common {
     public static final int INVENTORY_HOLD_EXPIRE_TIME_SECOND = 480;
     public static final int REDIS_CACHE_TTL_MINUTES = 10;
     public static final int EXTEND_LOCK_TIME_MINUTES = 5;
+    public static final String  PROPERTY_IMAGES_BUCKET= "property-images";
+    public static final String  ROOM_TYPE_IMAGES_BUCKET= "room-type-images";
+
+
+
+
+    public static final int GUEST_MAX_ALLOWED = 30;
+    public static final int AUTHENTICATED_MAX_ALLOWED = 120;
 }

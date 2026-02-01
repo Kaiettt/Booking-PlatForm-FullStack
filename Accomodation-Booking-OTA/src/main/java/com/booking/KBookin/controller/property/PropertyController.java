@@ -4,8 +4,7 @@ import com.booking.KBookin.dto.PageResponse;
 import com.booking.KBookin.dto.document.PropertyDocumentCreateRequest;
 import com.booking.KBookin.dto.property.PropertyCreateItemRequest;
 import com.booking.KBookin.dto.property.PropertyCreateRequest;
-import com.booking.KBookin.dto.property.PropertyDetailResponseDTO;
-import com.booking.KBookin.dto.review.ReviewResponseDTO;
+import com.booking.KBookin.dto.room.RoomTypeFilterDTO;
 import com.booking.KBookin.repository.projection.property.PropertyHostProjection;
 import com.booking.KBookin.repository.projection.review.ReviewProjection;
 import com.booking.KBookin.repository.projection.room.RoomTypeHostProjection;
@@ -86,8 +85,8 @@ public class PropertyController {
     }
     @PreAuthorize("hasAnyRole('HOST', 'ADMIN')")
     @GetMapping("/room-type/{propertyId}")
-    public ResponseEntity<List<RoomTypeHostProjection>> findPropertyRoomsById(@PathVariable long propertyId){
-        return ResponseEntity.ok(this.roomService.fetchPropertyRoomsById(propertyId));
+    public ResponseEntity<List<RoomTypeHostProjection>> findPropertyRoomsById(@PathVariable long propertyId, @Valid RoomTypeFilterDTO filter){
+        return ResponseEntity.ok(this.roomService.fetchPropertyRoomsById(propertyId,filter));
     }
 
     @PreAuthorize("hasAnyRole('HOST', 'ADMIN')")
