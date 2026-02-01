@@ -55,7 +55,7 @@ public class GlobalException {
 
     @ExceptionHandler({
             UsernameNotFoundException.class,
-            BadCredentialsException.class
+            BadCredentialsException.class, RateLimitExceededException.class
     })
     public ResponseEntity<ErrorResponse<Object>> handleAuthenticationException(Exception ex) {
         ErrorResponse<Object> response = new ErrorResponse<>();

@@ -59,7 +59,6 @@ public class RoomType extends BaseEntity {
     @BatchSize(size = 20)
     @Builder.Default
     private Set<RoomAmenity> amenities = new LinkedHashSet<>();
-
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
         name = "room_types_facilities",

@@ -9,19 +9,7 @@ import com.booking.KBookin.entity.BaseEntity;
 import com.booking.KBookin.entity.booking.CheckIn;
 import com.booking.KBookin.enumerate.property.RoomStatus;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -47,10 +35,26 @@ public class Room extends BaseEntity {
     private String roomNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "room_status")
-    private RoomStatus roomStatus;
+    @Column(name = "room_status", nullable = false)
+    @Builder.Default
+    private RoomStatus roomStatus = RoomStatus.AVAILABLE;
 
     @Column(name = "last_cleaned_at")
-    private LocalDateTime lastCleanedAt;
+    @Builder.Default
+    private LocalDateTime lastCleanedAt = LocalDateTime.now();
+
+    /**
+     * Optional: Ensures that the date is set specifically when
+     * the entity is first saved to the database.
+     */
+    @PrePersist
+    protected void onCreate() {
+        if (this.lastCleanedAt == null) {
+            this.lastCleanedAt = LocalDateTime.now();
+        }
+        if (this.roomStatus == null) {
+            this.roomStatus = RoomStatus.AVAILABLE;
+        }
+    }
 
 }

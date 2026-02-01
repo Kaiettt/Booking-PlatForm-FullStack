@@ -1,5 +1,6 @@
 package com.booking.KBookin.controller.auth;
 
+import com.booking.KBookin.aop.LoginRateLimit;
 import com.booking.KBookin.config.ApiMessage;
 import com.booking.KBookin.config.Common;
 import com.booking.KBookin.dto.auth.LoginDTO;
@@ -7,6 +8,10 @@ import com.booking.KBookin.dto.auth.LoginResponce;
 import com.booking.KBookin.service.auth.AuthenicationService;
 import com.booking.KBookin.dto.auth.SignupRequest;
 import com.booking.KBookin.dto.auth.SignupResponce;
+import com.booking.KBookin.security.LoginRateLimitService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.http.HttpHeaders;
@@ -23,21 +28,19 @@ import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
+@AllArgsConstructor
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationController {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final AuthenicationService authenicationService;
+    private final LoginRateLimitService loginRateLimitService;
 
-    public AuthenticationController(AuthenicationService authenicationService,
-            AuthenticationManagerBuilder authenticationManagerBuilder) {
-        this.authenticationManagerBuilder = authenticationManagerBuilder;
-        this.authenicationService = authenicationService;
-    }
-
+    @LoginRateLimit
     @PostMapping("/login")
     @ApiMessage("Login successfully")
-    public ResponseEntity<LoginResponce> login(@Valid @RequestBody LoginDTO loginDto) {
+    public ResponseEntity<LoginResponce> login(@Valid @RequestBody LoginDTO loginDto, HttpServletRequest request) {
         // Nạp input gồm username/password vào Security
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 loginDto.getUsername(), loginDto.getPassword());
@@ -46,8 +49,11 @@ public class AuthenticationController {
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
+        String ip = request.getRemoteAddr();
+        loginRateLimitService.loginSuccess(ip);
         LoginResponce loginResponce = this.authenicationService.handleAuthentication(authentication,
                 loginDto.getUsername());
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE,
                         this.authenicationService.getCookie(loginResponce.getRefreshToken()).toString())
@@ -107,9 +113,7 @@ public class AuthenticationController {
     public ResponseEntity<Map<String, String>> confirm(@RequestBody Map<String, String> request) {
         long token = Long.parseLong(request.get("token"));
         String email = request.get("email");
-
         this.authenicationService.handleEmailConfirmation(token, email);
-
         Map<String, String> response = new HashMap<>();
         response.put("message", "Email verified successfully.");
         return ResponseEntity.ok(response);
