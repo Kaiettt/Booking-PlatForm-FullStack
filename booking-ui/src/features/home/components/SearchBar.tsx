@@ -3,6 +3,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const POPULAR_DESTINATIONS = [
+    'Da Nang',
+    'Ho Chi Minh City'
+];
+
 export default function SearchBar() {
     const navigate = useNavigate();
     const [destination, setDestination] = useState('');
@@ -11,6 +16,7 @@ export default function SearchBar() {
     const [adults, setAdults] = useState(1);
     const [children, setChildren] = useState(0);
     const [showGuestSelector, setShowGuestSelector] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     const today = new Date().toISOString().split('T')[0];
     const totalGuests = adults + children;
@@ -54,9 +60,54 @@ export default function SearchBar() {
                             type="text"
                             value={destination}
                             onChange={(e) => setDestination(e.target.value)}
+                            onFocus={() => setShowSuggestions(true)}
+                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                             placeholder="Where are you going?"
                             className="block w-full pl-14 pr-4 py-4 bg-gray-50/50 hover:bg-white border-transparent focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 rounded-2xl transition-all duration-200 outline-none text-gray-900 placeholder-gray-400 font-medium"
                         />
+
+                        {/* Destination Suggestions */}
+                        <AnimatePresence>
+                            {showSuggestions && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="absolute z-30 mt-3 w-full bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
+                                >
+                                    <div className="py-2">
+                                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                            Popular Destinations
+                                        </div>
+                                        {POPULAR_DESTINATIONS.filter(city =>
+                                            city.toLowerCase().includes(destination.toLowerCase())
+                                        ).map((city) => (
+                                            <button
+                                                key={city}
+                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                                                onClick={() => {
+                                                    setDestination(city);
+                                                    setShowSuggestions(false);
+                                                }}
+                                            >
+                                                <div className="bg-blue-50 p-2 rounded-lg text-blue-500">
+                                                    <MapPin className="h-4 w-4" />
+                                                </div>
+                                                <span className="font-medium text-gray-700">{city}</span>
+                                            </button>
+                                        ))}
+                                        {POPULAR_DESTINATIONS.filter(city =>
+                                            city.toLowerCase().includes(destination.toLowerCase())
+                                        ).length === 0 && (
+                                                <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                                                    No matches found
+                                                </div>
+                                            )}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
                     {/* Check-in */}
