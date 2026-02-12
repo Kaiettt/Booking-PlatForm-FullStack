@@ -81,7 +81,7 @@ services:
       - npm_network
 
   spring-app:
-    image: ghcr.io/Kaiettt/booking-backend:latest
+    image: ghcr.io/kaiettt/booking-backend:latest
     container_name: spring-app
     env_file:
       - ./Accomodation-Booking-OTA/.env
@@ -101,7 +101,7 @@ services:
     restart: unless-stopped
 
   booking-ui:
-    image: ghcr.io/Kaiettt/booking-ui:latest
+    image: ghcr.io/kaiettt/booking-ui:latest
     container_name: booking-ui
     env_file:
       - ./booking-ui/.env
