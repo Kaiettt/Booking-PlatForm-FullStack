@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   postgres:
     image: postgres:14
@@ -9,7 +11,6 @@ services:
       TZ: Asia/Ho_Chi_Minh
     volumes:
       - my_postgres14_data:/var/lib/postgresql/data
-    # Giữ lại healthcheck cho Postgres vì image này hỗ trợ sẵn
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d booking_ota"]
       interval: 5s
@@ -17,6 +18,7 @@ services:
       retries: 5
     networks:
       - npm_network
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -28,6 +30,7 @@ services:
       retries: 5
     networks:
       - npm_network
+    restart: unless-stopped
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
@@ -37,6 +40,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     networks:
       - npm_network
+    restart: unless-stopped
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
@@ -51,17 +55,36 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - npm_network
+    restart: unless-stopped
 
   mailpit:
     image: axllent/mailpit:latest
     container_name: mailpit
     networks:
       - npm_network
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - npm_network
 
   spring-app:
-    build: ./Accomodation-Booking-OTA
+    image: ghcr.io/Kaiettt/booking-backend:latest
     container_name: spring-app
-    env_file: ./Accomodation-Booking-OTA/.env
+    env_file:
+      - ./Accomodation-Booking-OTA/.env
     environment:
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
@@ -71,33 +94,22 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
-    restart: on-failure
+    ports:
+      - "8080:8080"
     networks:
       - npm_network
+    restart: unless-stopped
 
   booking-ui:
-    build:
-      context: .
-      dockerfile: booking-ui/Dockerfile
+    image: ghcr.io/Kaiettt/booking-ui:latest
     container_name: booking-ui
-    restart: always
-    networks:
-      - npm_network
-  minio:
-    image: minio/minio
-    container_name: minio
-    restart: always
-    networks:
-      - npm_network
+    env_file:
+      - ./booking-ui/.env
     ports:
-      - "9000:9000"    # API Port
-      - "9001:9001"    # Web Console Port
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password123 # Change this for production!
-    volumes:
-      - minio_data:/data
-    command: server /data --console-address ":9001"
+      - "3000:80"
+    networks:
+      - npm_network
+    restart: unless-stopped
 
 networks:
   npm_network:

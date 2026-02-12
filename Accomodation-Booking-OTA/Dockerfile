@@ -1,24 +1,29 @@
-# ===== STAGE 1: Build =====
-FROM eclipse-temurin:21-jdk-alpine AS builder
+# =========================
+# BUILD STAGE
+# =========================
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /app
 
-# Install Maven
-RUN apk add --no-cache maven
+COPY pom.xml .
+RUN mvn dependency:go-offline
 
-# Copy source code
-COPY . .
-
-# Build jar (skip tests)
+COPY src ./src
 RUN mvn clean package -DskipTests
 
-# ===== STAGE 2: Run =====
+# =========================
+# RUN STAGE
+# =========================
 FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# Copy jar from build stage
 COPY --from=builder /app/target/*.jar app.jar
 
+# Create non-root user
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring
+
 EXPOSE 8080
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
