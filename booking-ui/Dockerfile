@@ -5,10 +5,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY booking-ui/package*.json ./
+COPY package*.json ./
 RUN npm install
 
-COPY booking-ui/ .
+COPY . .
 RUN npm run build
 
 # =========================
@@ -17,7 +17,7 @@ RUN npm run build
 FROM nginx:alpine
 
 COPY --from=builder /app/dist /usr/share/nginx/html
-COPY booking-ui/default.conf /etc/nginx/conf.d/default.conf
+COPY default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
