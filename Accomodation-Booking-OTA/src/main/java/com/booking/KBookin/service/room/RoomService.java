@@ -1,43 +1,4 @@
 package com.booking.KBookin.service.room;
 
-import com.booking.KBookin.dto.room.RoomCreateRequestDTO;
-import com.booking.KBookin.dto.room.RoomResponseDTO;
-import com.booking.KBookin.dto.room.RoomTypeCreateRequestDTO;
-import com.booking.KBookin.dto.room.RoomTypeFilterDTO;
-import com.booking.KBookin.entity.room.Room;
-import com.booking.KBookin.repository.projection.room.RoomTypeHostProjection;
-import jakarta.validation.Valid;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Set;
-
-public interface RoomService {
-    List<Room> findAvaibaleRoomsByRoomTypeIds(List<Long> roomTypeIds);
-
-    void updateAllRooms(Set<Room> selectedRooms);
-
-    void releaseAllRoomLock(Long userId);
-
-    void extendRoomLock(Long userId);
-
-    void releaseRoomInventory(Integer quantity, Long id, LocalDate checkIn, LocalDate checkOut);
-
-    List<RoomTypeHostProjection> fetchPropertyRoomsById(long propertyId, RoomTypeFilterDTO filter);
-
-    Long createRoomType(@Valid RoomTypeCreateRequestDTO requestDTO);
-
-    RoomTypeHostProjection fetchRoomTypeById(Long id);
-
-    Long uploadRoomTypeMedia(Long id, List<MultipartFile> files);
-
-    RoomResponseDTO createRoom(RoomCreateRequestDTO requestDTO);
-
-    List<RoomResponseDTO> createRooms(List<RoomCreateRequestDTO> requestDTOs);
-
-
-//    void releaseRooms(Integer quantity, Long roomTypeId, LocalDate checkIn, LocalDate checkOut);
-//
-//    void releaseAllRoomLock(Long userId, Long roomTypeId);
+public interface RoomService extends RoomSearchService, InventoryService, RoomManagementService {
 }

@@ -21,7 +21,7 @@ import java.util.List;
 @RequestMapping("/lock/rooms")
 public class InventoryLockController {
     private InventoryLockService inventoryLockService;
-    @LockRoomRateLimit
+
     @PostMapping
     public ResponseEntity<InventoryHoldResponse> lockRoom(@RequestBody LockRoomRequestDTO request){
         return ResponseEntity.status(HttpStatus.CREATED).body(this.inventoryLockService.handleLockRoom(request));

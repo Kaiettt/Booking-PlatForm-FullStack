@@ -43,6 +43,7 @@ public class RoomServiceImpl implements RoomService {
     private InventoryHoldRepository inventoryHoldRepository;
     private PropertyRepository propertyRepository;
     private MediaService mediaService;
+
     @Override
     public List<Room> findAvaibaleRoomsByRoomTypeIds(List<Long> roomTypeIds) {
         return this.roomRepository.findAvailableByRoomTypeIds(roomTypeIds);
@@ -56,7 +57,7 @@ public class RoomServiceImpl implements RoomService {
     @Override
     public void releaseAllRoomLock(Long userId) {
         InventoryHold inventoryHold = this.inventoryHoldRepository.findTopByUser_IdOrderByCreatedAtDesc(userId);
-        if(inventoryHold == null){
+        if (inventoryHold == null) {
             throw new EntityNotFoundException("Hold not found");
         }
         this.inventoryHoldRepository.deleteById(inventoryHold.getId());
@@ -64,13 +65,12 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public void extendRoomLock(Long userId) {
-        InventoryHold inventoryHold =
-                this.inventoryHoldRepository.findByUserId(userId, PageRequest.of(0, 1))
-                        .stream()
-                        .findFirst()
-                        .orElse(null);
+        InventoryHold inventoryHold = this.inventoryHoldRepository.findByUserId(userId, PageRequest.of(0, 1))
+                .stream()
+                .findFirst()
+                .orElse(null);
 
-        if(inventoryHold == null){
+        if (inventoryHold == null) {
             throw new EntityNotFoundException("Room Lock not found");
         }
         inventoryHold.extendLock();
@@ -80,12 +80,12 @@ public class RoomServiceImpl implements RoomService {
     @Transactional
     @Override
     public void releaseRoomInventory(Integer quantity, Long roomTypeId, LocalDate checkIn, LocalDate checkOut) {
-        this.roomInventoryRepository.updateAfterReleaseHolds(quantity,roomTypeId,checkIn,checkOut);
+        this.roomInventoryRepository.updateAfterReleaseHolds(quantity, roomTypeId, checkIn, checkOut);
     }
 
     @Override
     public List<RoomTypeHostProjection> fetchPropertyRoomsById(long propertyId, RoomTypeFilterDTO filter) {
-        Specification<RoomType> spec = RoomTypeSpecifications.withFilters(propertyId,filter);
+        Specification<RoomType> spec = RoomTypeSpecifications.withFilters(propertyId, filter);
         return this.roomTypeRepository.findBy(spec, q -> q.as(RoomTypeHostProjection.class).all());
     }
 
@@ -93,7 +93,7 @@ public class RoomServiceImpl implements RoomService {
     public Long createRoomType(RoomTypeCreateRequestDTO requestDTO) {
         Property property = this.propertyRepository.findById(requestDTO.getPropertyId())
                 .orElseThrow(() -> new EntityNotFoundException("Property not found"));
-        if(property.getStatus() == PropertyStatus.ACCEPTED){
+        if (property.getStatus() == PropertyStatus.ACCEPTED) {
             Set<RoomAmenity> roomAmenities = requestDTO.getAmenityIds().stream()
                     .map(id -> RoomAmenity.builder().id(id).build())
                     .collect(Collectors.toSet());
@@ -114,9 +114,8 @@ public class RoomServiceImpl implements RoomService {
                     .amenities(roomAmenities)
                     .facilities(roomFacilities)
                     .build();
-                    return this.roomTypeRepository.save(roomType).getId();
-        }
-        else {
+            return this.roomTypeRepository.save(roomType).getId();
+        } else {
             throw new BusinessProcessException("Cannot create new room type. Property is not active");
         }
     }
@@ -131,7 +130,7 @@ public class RoomServiceImpl implements RoomService {
     public Long uploadRoomTypeMedia(Long roomTypeId, List<MultipartFile> files) {
         RoomType roomType = this.roomTypeRepository.findById(roomTypeId)
                 .orElseThrow(() -> new EntityNotFoundException("Room Type not found"));
-        this.mediaService.updateRoomTypeImages(roomType,files);
+        this.mediaService.updateRoomTypeImages(roomType, files);
         return this.roomTypeRepository.save(roomType).getId();
     }
 
@@ -140,10 +139,9 @@ public class RoomServiceImpl implements RoomService {
         RoomType roomType = this.roomTypeRepository.findById(requestDTO.getRoomTypeId())
                 .orElseThrow(() -> new EntityNotFoundException("Room Type not found"));
 
+        Room savedRoom = this.roomRepository.save(processCreatRoom(requestDTO, roomType));
 
-        Room savedRoom = this.roomRepository.save(processCreatRoom(requestDTO,roomType) );
-
-        return processToRoomResponse(savedRoom,roomType);
+        return processToRoomResponse(savedRoom, roomType);
     }
 
     @Override

@@ -61,50 +61,14 @@ public class Cancellation extends BaseEntity {
     private CancellationStatus status;
 
 
-    public void handleCancelBooking(Booking booking) {
+    public void handleCancelBooking(Booking booking, com.booking.KBookin.service.booking.strategy.cancellation.CancellationStrategyFactory strategyFactory) {
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setPaymentStatus(PaymentStatus.REFUNDED);
-        BigDecimal totalCancellationFee = BigDecimal.ZERO;
-
-        for (BookingItem bookingItem : booking.getBookingItems()) {
-            RatePlan ratePlan = bookingItem.getRatePlan();
-            CancellationPolicy cancellationPolicy = ratePlan.getCancellationPolicy();
-            BigDecimal itemAmount = bookingItem.getAmount();
-
-            switch (cancellationPolicy.getType()) {
-
-                case NON_REFUNDABLE -> {
-                    BigDecimal fixedFee = Optional.ofNullable(cancellationPolicy.getFixedFee())
-                            .orElse(BigDecimal.ZERO);
-                    totalCancellationFee = totalCancellationFee
-                            .add(fixedFee.multiply(BigDecimal.valueOf(bookingItem.getQuantity())))
-                            .add(itemAmount);
-                }
-
-                case PARTIAL -> {
-                    LocalDateTime checkInDateTime = booking.getCheckIn().atStartOfDay();
-                    LocalDateTime cancellationDeadline =
-                            checkInDateTime.minusHours(cancellationPolicy.getHoursBefore());
-
-                    if (LocalDateTime.now().isBefore(cancellationDeadline)) {
-                        BigDecimal fixedFee = Optional.ofNullable(cancellationPolicy.getFixedFee())
-                                .orElse(BigDecimal.ZERO);
-
-                        BigDecimal percentageFee = itemAmount
-                                .multiply(BigDecimal.valueOf(cancellationPolicy.getRefundPercentage()))
-                                .divide(BigDecimal.valueOf(100));
-
-                        totalCancellationFee = totalCancellationFee
-                                .add(fixedFee.multiply(BigDecimal.valueOf(bookingItem.getQuantity())))
-                                .add(percentageFee);
-                    }
-                }
-
-                case FREE -> {
-                }
-                default -> throw new IllegalStateException("Unexpected value: " + cancellationPolicy.getType());
-            }
-        }
+        
+        BigDecimal totalCancellationFee = booking.getBookingItems().stream()
+                .map(item -> strategyFactory.getStrategy(item.getRatePlan().getCancellationPolicy().getType())
+                        .calculateFee(item, booking))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // Compute total refund once after summing all booking items
         BigDecimal totalRefund = booking.getTotalAmount().subtract(totalCancellationFee)
