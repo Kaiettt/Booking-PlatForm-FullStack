@@ -21,7 +21,7 @@ import org.springframework.data.domain.Pageable;
 @RequestMapping("/search")
 public class SearchController {
     private SearchService searchService;
-    @SearchRateLimit
+
     @GetMapping
     public ResponseEntity<PageResponse<List<SearchResponseDTO>>> searchProperty(
             @RequestParam String city,
@@ -34,7 +34,6 @@ public class SearchController {
         SearchRequestDTO request = new SearchRequestDTO(city, checkingDate, checkoutDate, adults, children);
         return ResponseEntity.ok(this.searchService.searchProperty(request, pageable));
     }
-    @SearchRateLimit
     @GetMapping("/filter")
     public ResponseEntity<PageResponse<List<SearchResponseDTO>>> filterSearch(
             @RequestParam(required = false) String city,
@@ -58,7 +57,6 @@ public class SearchController {
         );
         return ResponseEntity.ok(this.searchService.searchPropertyWithFilter(request,pageable));
     }
-    @SearchRateLimit
     @GetMapping("/room-type/filter")
     public ResponseEntity<PropertyDetailResponseDTO> filterRoomSearch(
 

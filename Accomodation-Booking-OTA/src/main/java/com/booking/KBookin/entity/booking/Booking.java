@@ -1,6 +1,7 @@
 // src/main/java/com/booking/KBookin/entity/booking/Booking.java
 package com.booking.KBookin.entity.booking;
 
+import com.booking.KBookin.dto.booking.CreateBookingRequestDTO;
 import com.booking.KBookin.entity.BaseEntity;
 import com.booking.KBookin.entity.payment.Payment;
 import com.booking.KBookin.entity.user.User;
@@ -108,5 +109,27 @@ public class Booking extends BaseEntity {
 
         this.paymentStatus = PaymentStatus.FAILED;
         this.status = BookingStatus.PENDING;
+    }
+
+
+    public static Booking fromCreateRequest(CreateBookingRequestDTO request) {
+        return Booking.builder()
+                .user(User.builder()
+                        .id(request.getUserId())
+                        .build())
+                .paymentMethod(PaymentMethod.valueOf(request.getPaymentMethod()))
+                .paymentStatus(PaymentStatus.PENDING) // Trạng thái mặc định khi khởi tạo
+                .checkIn(request.getCheckIn())
+                .checkOut(request.getCheckOut())
+                .specialRequest(request.getSpecialRequest())
+                .guest(BookingGuest.builder()
+                        .name(request.getGuest().getName())
+                        .email(request.getGuest().getEmail())
+                        .phone(request.getGuest().getPhone())
+                        .nationality(request.getGuest().getNationality())
+                        .build())
+                .bookingItems(new ArrayList<>()) // Khởi tạo danh sách trống để tránh NullPointerException
+                .status(BookingStatus.PENDING)    // Đảm bảo status ban đầu được set
+                .build();
     }
 }

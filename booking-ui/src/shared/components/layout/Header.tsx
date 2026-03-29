@@ -60,7 +60,7 @@ export default function Header() {
                                     className="flex items-center space-x-2 hover:bg-gray-100 px-3 py-2 rounded-lg"
                                 >
                                     <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold">
-                                        {user?.fullName.charAt(0)}
+                                        {user?.fullName?.charAt(0) || 'U'}
                                     </div>
                                     <span className="font-medium text-gray-700">
                                         {user?.fullName}

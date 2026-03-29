@@ -1,0 +1,57 @@
+# Final Refactoring Plan: SOLID & Design Patterns
+
+This plan outlines a complete and detailed roadmap to refactor the project for maximum SOLID compliance. **Strict Constraint: The existing JPA Entity structure (data model) will not be modified.**
+
+## 1. Phase 1: Behavioral Logic (OCP & Strategy Pattern)
+
+### Cancellation Logic
+- **Problem**: [Cancellation.java](file:///d:/Booking-Project-fullstack/Accomodation-Booking-OTA/src/main/java/com/booking/KBookin/entity/booking/Cancellation.java) has a nested `switch` in [handleCancelBooking](file:///d:/Booking-Project-fullstack/Accomodation-Booking-OTA/src/main/java/com/booking/KBookin/entity/booking/Cancellation.java#64-120) based on `CancellationPolicyType`. This makes adding new policies difficult (violates OCP).
+- **Refactor**:
+    - **`CancellationStrategy` (Interface)**: Methods like `calculateFee(BookingItem item)` and `calculateRefund(Booking total)`.
+    - **Implementations**: `FreeCancellationStrategy`, `NonRefundableStrategy`, `PartialRefundableStrategy`.
+    - **`CancellationStrategyFactory`**: Resolves the correct strategy based on policy type.
+
+### Booking Post-Processing
+- **Problem**: [BookingServiceImpl](file:///d:/Booking-Project-fullstack/Accomodation-Booking-OTA/src/main/java/com/booking/KBookin/service/booking/imp/BookingServiceImpl.java#39-184) has `if-else` blocks for [PaymentMethod](file:///d:/Booking-Project-fullstack/Accomodation-Booking-OTA/src/main/java/com/booking/KBookin/entity/booking/Booking.java#73-82) (e.g., handling room locks differently for CASH vs ONLINE).
+- **Refactor**:
+    - **`BookingActionStrategy`**: Methods for `onSuccess()`, `onFailure()`, `handleInventory()`.
+    - **Implementations**: `CashBookingStrategy`, `OnlineBookingStrategy`.
+
+## 2. Phase 2: Decoupling (SRP, DIP & Observer Pattern)
+
+### Event-Driven Notifications
+- **Problem**: [BookingServiceImpl](file:///d:/Booking-Project-fullstack/Accomodation-Booking-OTA/src/main/java/com/booking/KBookin/service/booking/imp/BookingServiceImpl.java#39-184) is directly coupled to `EmailBookingSuccessProducer`.
+- **Refactor**:
+    - Use Spring's **`ApplicationEventPublisher`**.
+    - Publish a `BookingCreatedEvent` when a booking is saved.
+    - Create a **`BookingEventListener`** to handle emails, logging, and integration tasks asynchronously.
+- **Benefit**: Decouples business logic from notification infrastructure (SRP & DIP).
+
+## 3. Phase 3: Interface & Validation (ISP & Chain of Responsibility)
+
+### Interface Segregation (ISP) for RoomService
+- **Problem**: [RoomService](file:///d:/Booking-Project-fullstack/Accomodation-Booking-OTA/src/main/java/com/booking/KBookin/service/room/RoomService.java#16-44) is a "God Service" handling search, management, inventory, and media.
+- **Refactor**: Split into leaner interfaces:
+    - **`RoomSearchService`**: For all finding/filtering logic.
+    - **`InventoryManager`**: Specialized for locking/releasing rooms.
+    - **`RoomManagementService`**: For entity creation and media uploads.
+
+### Booking Validation Chain
+- **Problem**: [createBooking](file:///d:/Booking-Project-fullstack/Accomodation-Booking-OTA/src/main/java/com/booking/KBookin/service/booking/imp/BookingServiceImpl.java#50-112) has complex, hard-to-read validation logic.
+- **Refactor**: Implement **Chain of Responsibility**.
+    - `BookingValidator` interface.
+    - `InventoryValidator`, `PriceValidator`, `UserStatusValidator` as handlers in the chain.
+
+## 4. Phase 4: Querying (Specification Pattern)
+
+### Dynamic Search
+- **Problem**: Manual JPQL or redundant repository methods for property/room filtering.
+- **Refactor**: Implement **`JpaSpecificationExecutor`**.
+    - Use `PropertySpecification` to build dynamic predicates (price, location, rating).
+- **Benefit**: Cleaner repositories and reusable search components.
+
+## Implementation Roadmap
+1. **Phase 1** (Highest Priority): Strategy Pattern for Cancellation & Booking.
+2. **Phase 2**: Observer Pattern for Notifications.
+3. **Phase 3**: ISP for RoomService and Validation Chain.
+4. **Phase 4**: Specification Pattern for Dynamic Search.
