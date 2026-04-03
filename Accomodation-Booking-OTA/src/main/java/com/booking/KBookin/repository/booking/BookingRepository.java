@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking,Long> {
     @Query("""
@@ -37,6 +38,21 @@ public interface BookingRepository extends JpaRepository<Booking,Long> {
             "bookingItems.ratePlan",
             "bookingItems.ratePlan.perks"
     })
-    @Query("SELECT DISTINCT b FROM Booking b WHERE b.id = :id") // Thêm DISTINCT ở đây
+    @Query("SELECT DISTINCT b FROM Booking b WHERE b.id = :id")
     Optional<BookingProjection> findProjectedById(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = {
+            "bookingItems",
+            "bookingItems.roomType",
+            "bookingItems.ratePlan",
+            "bookingItems.ratePlan.perks"
+    })
+    @Query("""
+        select distinct b
+        from Booking b
+        join b.bookingItems bi
+        join bi.roomType rt
+        where rt.property.host.id = :hostId
+    """)
+    List<BookingProjection> findProjectedByHostId(@Param("hostId") Long hostId);
 }

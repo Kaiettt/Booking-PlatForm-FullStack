@@ -9,6 +9,16 @@ import SignupPage from '@/features/auth/pages/SignupPage';
 import ConfirmBookingPage from '@/features/booking/pages/ConfirmBooking';
 import BookingSuccessPage from '@/features/booking/pages/BookingSuccess';
 import PaymentCallback from '@/features/booking/pages/PaymentCallback';
+import WishlistPage from '@/features/wishlist/pages/WishlistPage';
+import HostLayout from '@/features/host/components/HostLayout';
+import HostBookingsPage from '@/features/host/pages/HostBookingsPage';
+import CreatePropertyPage from '@/features/host/pages/CreatePropertyPage';
+import ManageRoomTypesPage from '@/features/host/pages/ManageRoomTypesPage';
+import RequireRole from '@/shared/components/guards/RequireRole';
+import AdminLayout from '@/features/admin/components/AdminLayout';
+import ManageUsersPage from '@/features/admin/pages/ManageUsersPage';
+import ApprovalsPage from '@/features/admin/pages/ApprovalsPage';
+import { Navigate } from 'react-router-dom';
 
 const routes: RouteObject[] = [
     {
@@ -49,6 +59,58 @@ const routes: RouteObject[] = [
             {
                 path: 'payments/call-back',
                 element: <PaymentCallback />
+            },
+            {
+                path: 'wishlist',
+                element: <WishlistPage />
+            },
+            {
+                path: 'host',
+                element: (
+                    <RequireRole role="HOST">
+                        <HostLayout />
+                    </RequireRole>
+                ),
+                children: [
+                    {
+                        index: true,
+                        element: <Navigate to="bookings" replace />,
+                    },
+                    {
+                        path: 'bookings',
+                        element: <HostBookingsPage />,
+                    },
+                    {
+                        path: 'properties/create',
+                        element: <CreatePropertyPage />,
+                    },
+                    {
+                        path: 'room-types',
+                        element: <ManageRoomTypesPage />,
+                    },
+                ],
+            },
+            {
+                path: 'admin',
+                element: (
+                    <RequireRole role="ADMIN">
+                        <AdminLayout />
+                    </RequireRole>
+                ),
+                children: [
+                    {
+                        index: true,
+                        element: <Navigate to="users" replace />,
+                    },
+                    {
+                        path: 'users',
+                        element: <ManageUsersPage />,
+                    },
+                    {
+                        path: 'approvals',
+                        element: <ApprovalsPage />,
+                    },
+                ],
             }
         ]
     }

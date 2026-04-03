@@ -1,18 +1,51 @@
 import type { Property } from '@/features/property/types/property/property.type'
 import { Heart, Star, MapPin } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toSlug } from '@/util/slug-conversion.util'
 import { buildAndStorePropertySearchParams } from '../util/build-param.util'
+import { useAuthStore } from '@/stores/auth.store'
+import { wishlistApi } from '@/features/wishlist/services/wishlist.api'
 
 interface Props {
     property: Property
 }
 
 export default function PropertyCard({ property }: Props) {
-    const [isFavorite, setIsFavorite] = useState(false)
+    const user = useAuthStore((s) => s.user)
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+
+    const [saved, setSaved] = useState(false)
+    const [wishlistLoading, setWishlistLoading] = useState(false)
+
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
+
+    useEffect(() => {
+        if (!isAuthenticated || !user) return
+        wishlistApi
+            .fetchWishlistByUser(user.id)
+            .then((data) => {
+                setSaved(data.wishlistProperties.some((p) => p.propertyId === property.id))
+            })
+            .catch(() => {})
+    }, [isAuthenticated, user, property.id])
+
+    const handleToggleWishlist = async (e: React.MouseEvent) => {
+        e.stopPropagation()
+        if (!isAuthenticated || !user) return
+        if (saved || wishlistLoading) return
+
+        try {
+            setWishlistLoading(true)
+            await wishlistApi.addToWishlist({ userId: user.id, propertyId: property.id })
+            setSaved(true)
+        } catch {
+            setSaved(true)
+        } finally {
+            setWishlistLoading(false)
+        }
+    }
 
     const handleViewPropertyDetail = () => {
         const slug = toSlug(property.name)
@@ -51,17 +84,14 @@ export default function PropertyCard({ property }: Props) {
 
                 {/* Favorite Button */}
                 <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setIsFavorite(!isFavorite);
-                    }}
+                    onClick={handleToggleWishlist}
+                    disabled={!isAuthenticated || wishlistLoading}
                     className="absolute top-4 right-4 p-2.5 bg-white/20 hover:bg-white backdrop-blur-md rounded-full transition-all duration-300 group/heart"
                 >
                     <Heart
-                        className={`w-5 h-5 transition-colors duration-300 ${isFavorite
-                            ? 'fill-red-500 text-red-500'
-                            : 'text-white group-hover/heart:text-red-500'
-                            }`}
+                        className={`w-5 h-5 transition-colors duration-300 ${
+                            saved ? 'fill-red-500 text-red-500' : 'text-white group-hover/heart:text-red-500'
+                        }`}
                     />
                 </button>
 

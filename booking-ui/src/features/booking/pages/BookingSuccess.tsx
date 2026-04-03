@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, CreditCard, MapPin, User, Check, Copy, Download, Share2 } from "lucide-react";
+import { Calendar, Clock, CreditCard, MapPin, User, Check, Copy, Download, Share2, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/shared/components/layout/Header";
 import Footer from "@/shared/components/layout/Footer";
@@ -7,11 +7,33 @@ import { useFetchBookingResponse } from "../hooks/useFetchBookingResponse.hooks"
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { toSlug } from "@/util/slug-conversion.util";
 
 export default function BookingSuccessPage() {
     const { bookingData, isLoading, error } = useFetchBookingResponse();
     const navigate = useNavigate();
     const [copied, setCopied] = useState(false);
+
+    const handleWriteReview = () => {
+        const raw = localStorage.getItem('propertyDetail')
+        if (!raw) {
+            navigate('/')
+            return
+        }
+
+        try {
+            const propertyDetail = JSON.parse(raw) as { name?: string }
+            const slug = toSlug(propertyDetail.name || '')
+            if (!slug) {
+                navigate('/')
+                return
+            }
+
+            navigate(`/property/${slug}#reviews`)
+        } catch {
+            navigate('/')
+        }
+    }
 
     const copyToClipboard = () => {
         if (bookingData?.bookingReference) {
@@ -221,6 +243,15 @@ export default function BookingSuccessPage() {
                                     <span className="text-xs font-medium">Share</span>
                                 </Button>
                             </div>
+
+                            <Button
+                                onClick={handleWriteReview}
+                                variant="outline"
+                                className="w-full h-auto py-4 flex flex-col gap-2 rounded-xl bg-white border-gray-200 hover:bg-gray-50 hover:text-blue-600 transition-all"
+                            >
+                                <Star className="w-5 h-5" />
+                                <span className="text-xs font-medium">Write a review</span>
+                            </Button>
 
                             <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100 text-center">
                                 <h3 className="font-bold text-blue-900 mb-2">Need Assistance?</h3>

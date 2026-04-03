@@ -1,11 +1,14 @@
 import { Star, ThumbsUp } from 'lucide-react'
 import { motion } from 'framer-motion'
 import type { Review } from '@/features/review/review.type'
+import ReviewForm from '@/features/review/components/ReviewForm'
 
 interface Props {
     reviews: Review[]
     avgRating: number | null
     totalRating: number | null
+    propertyId: number
+    onReviewCreated?: () => void
 }
 
 const StarRating = ({ rating }: { rating: number }) => (
@@ -43,8 +46,7 @@ const Avatar = ({ name }: { name: string }) => {
     )
 }
 
-export default function PropertyReviews({ reviews, avgRating, totalRating }: Props) {
-    if (!reviews || reviews.length === 0) return null
+export default function PropertyReviews({ reviews, avgRating, totalRating, propertyId, onReviewCreated }: Props) {
 
     return (
         <section className="space-y-8 py-8 border-t border-gray-100" id="reviews">
@@ -63,47 +65,56 @@ export default function PropertyReviews({ reviews, avgRating, totalRating }: Pro
             </div>
 
             {/* Reviews Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {reviews.map((review, index) => (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.4, delay: index * 0.1 }}
-                        key={review.id}
-                        className="p-6 bg-gray-50 rounded-2xl hover:bg-white hover:shadow-lg transition-all duration-300 border border-transparent hover:border-gray-100"
-                    >
-                        {/* User Header */}
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-3">
-                                <Avatar name={review.userName} />
-                                <div>
-                                    <h3 className="font-bold text-gray-900 text-sm">{review.userName}</h3>
-                                    <div className="text-xs text-gray-400">
-                                        {review.createdAt && new Date(review.createdAt).toLocaleDateString(undefined, {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric'
-                                        })}
+            {(!reviews || reviews.length === 0) ? (
+                <div className="text-gray-600 text-sm bg-gray-50 border border-gray-100 rounded-2xl p-6">
+                    No reviews yet. Be the first to share your experience.
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {reviews.map((review, index) => (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.4, delay: index * 0.1 }}
+                            key={review.id}
+                            className="p-6 bg-gray-50 rounded-2xl hover:bg-white hover:shadow-lg transition-all duration-300 border border-transparent hover:border-gray-100"
+                        >
+                            {/* User Header */}
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-3">
+                                    <Avatar name={review.userName} />
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 text-sm">{review.userName}</h3>
+                                        <div className="text-xs text-gray-400">
+                                            {review.createdAt && new Date(review.createdAt).toLocaleDateString(undefined, {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric'
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
+                                <StarRating rating={review.rating} />
                             </div>
-                            <StarRating rating={review.rating} />
-                        </div>
 
-                        {/* Comment */}
-                        <p className="text-gray-600 text-sm leading-relaxed">
-                            "{review.comment}"
-                        </p>
+                            {/* Comment */}
+                            <p className="text-gray-600 text-sm leading-relaxed">
+                                "{review.comment}"
+                            </p>
 
-                        {/* Helpful (Mock) */}
-                        <div className="mt-4 flex items-center gap-2 text-xs text-gray-400 cursor-pointer hover:text-blue-600 transition-colors w-fit">
-                            <ThumbsUp className="w-3 h-3" />
-                            <span>Helpful</span>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
+                            {/* Helpful (Mock) */}
+                            <div className="mt-4 flex items-center gap-2 text-xs text-gray-400 cursor-pointer hover:text-blue-600 transition-colors w-fit">
+                                <ThumbsUp className="w-3 h-3" />
+                                <span>Helpful</span>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            )}
+
+            {/* Write review */}
+            <ReviewForm propertyId={propertyId} onCreated={onReviewCreated} />
         </section>
     )
 }

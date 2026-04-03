@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @AllArgsConstructor
 @RestController
 @RequestMapping("/bookings")
@@ -35,9 +37,16 @@ public class BookingController {
     public ResponseEntity<CheckinResponse> checkin(@PathVariable("bookingId") Long bookingId){
         return ResponseEntity.status(HttpStatus.CREATED).body(this.bookingService.handleCheckin(bookingId));
     }
+    @PreAuthorize("hasRole('HOST')")
     @PostMapping("/check-out/{bookingId}")
     public ResponseEntity<CheckoutResponse> checkout(@PathVariable("bookingId") Long bookingId){
         return ResponseEntity.status(HttpStatus.CREATED).body(this.bookingService.handleCheckout(bookingId));
+    }
+
+    @PreAuthorize("hasRole('HOST')")
+    @GetMapping("/host/{hostId}")
+    public ResponseEntity<List<BookingResponse>> getBookingsByHost(@PathVariable("hostId") Long hostId) {
+        return ResponseEntity.ok(this.bookingService.getBookingsByHostId(hostId));
     }
 
     @PostMapping("/cancels")
