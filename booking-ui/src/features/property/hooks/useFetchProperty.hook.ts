@@ -9,25 +9,25 @@ export function useFetchProperty() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
+    const fetchData = async () => {
+        try {
+            setLoading(true)
+            setError(null)
+            const query = buildQueryFromStorage()
+            const response = await searchDetailProperty.fetchPropertyDetail(query)
+
+            setResult(response)
+            localStorage.setItem('propertyDetail', JSON.stringify(response))
+        } catch {
+            setError('Failed to load search results')
+        } finally {
+            setLoading(false)
+        }
+    }
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true)
-                const query = buildQueryFromStorage();
-                const response = await searchDetailProperty.fetchPropertyDetail(query);
-
-                setResult(response)
-                localStorage.setItem('propertyDetail', JSON.stringify(response));
-            } catch {
-                setError('Failed to load search results')
-            } finally {
-                setLoading(false)
-            }
-        }
-
         fetchData()
     }, [])
 
-    return { result, loading, error }
+    return { result, loading, error, refetch: fetchData }
 }

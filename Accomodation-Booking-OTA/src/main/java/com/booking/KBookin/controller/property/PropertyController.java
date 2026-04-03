@@ -23,6 +23,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.data.domain.Pageable;
 import java.net.URI;
 import java.util.List;
+import com.booking.KBookin.entity.property.Property;
+import com.booking.KBookin.enumerate.property.PropertyStatus;
+import com.booking.KBookin.repository.property.PropertyRepository;
 
 
 @AllArgsConstructor
@@ -33,6 +36,7 @@ public class PropertyController {
     private final DocumentService documentService;
     private final RoomService roomService;
     private final ReviewService reviewService;
+    private final PropertyRepository propertyRepository;
     @PreAuthorize("hasAnyRole('HOST', 'ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<PropertyHostProjection> findPropertyById(@PathVariable long id){
@@ -93,5 +97,36 @@ public class PropertyController {
     @GetMapping("/reviews/{propertyId}")
     public ResponseEntity<PageResponse<List<ReviewProjection>>> findPropertyReviewsById(@PathVariable long propertyId, Pageable pageable){
         return ResponseEntity.ok(this.reviewService.fetchPropertyReviewsById(propertyId,pageable));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public ResponseEntity<List<PropertyHostProjection>> findAllPendingProperties() {
+        List<Property> all = propertyRepository.findAll();
+        List<PropertyHostProjection> pending = all.stream()
+                .filter(p -> p.getStatus() == PropertyStatus.PENDING)
+                .map(p -> this.propertyService.fetchPropertyIdById(p.getId()))
+                .toList();
+        return ResponseEntity.ok(pending);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{propertyId}/approve")
+    public ResponseEntity<Long> approveProperty(@PathVariable Long propertyId) {
+        Property property = this.propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Property not found"));
+        property.setStatus(PropertyStatus.ACCEPTED);
+        this.propertyRepository.save(property);
+        return ResponseEntity.ok(propertyId);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{propertyId}/reject")
+    public ResponseEntity<Long> rejectProperty(@PathVariable Long propertyId) {
+        Property property = this.propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Property not found"));
+        property.setStatus(PropertyStatus.REJECTED);
+        this.propertyRepository.save(property);
+        return ResponseEntity.ok(propertyId);
     }
 }

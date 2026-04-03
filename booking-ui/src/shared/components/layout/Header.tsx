@@ -27,6 +27,21 @@ export default function Header() {
                         <Link to="/properties" className="text-gray-700 hover:text-blue-600 font-medium">
                             Properties
                         </Link>
+                        {isAuthenticated && (
+                            <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 font-medium">
+                                Wishlist
+                            </Link>
+                        )}
+                        {isAuthenticated && user?.role === 'HOST' && (
+                            <Link to="/host/bookings" className="text-gray-700 hover:text-blue-600 font-medium">
+                                Host Dashboard
+                            </Link>
+                        )}
+                        {isAuthenticated && user?.role === 'ADMIN' && (
+                            <Link to="/admin/users" className="text-gray-700 hover:text-blue-600 font-medium">
+                                Admin Panel
+                            </Link>
+                        )}
                         <Link to="/about" className="text-gray-700 hover:text-blue-600 font-medium">
                             About
                         </Link>
@@ -107,6 +122,21 @@ export default function Header() {
                         <Link to="/properties" className="block text-gray-700 font-medium">
                             Properties
                         </Link>
+                            {isAuthenticated && (
+                                <Link to="/wishlist" className="block text-gray-700 font-medium">
+                                    Wishlist
+                                </Link>
+                            )}
+                            {isAuthenticated && user?.role === 'HOST' && (
+                                <Link to="/host/bookings" className="block text-gray-700 font-medium">
+                                    Host Dashboard
+                                </Link>
+                            )}
+                            {isAuthenticated && user?.role === 'ADMIN' && (
+                                <Link to="/admin/users" className="block text-gray-700 font-medium">
+                                    Admin Panel
+                                </Link>
+                            )}
                         <Link to="/about" className="block text-gray-700 font-medium">
                             About
                         </Link>

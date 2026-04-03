@@ -16,7 +16,7 @@ import { useState } from "react"
 import { MapPin } from "lucide-react"
 
 export default function PropertyDetailPage() {
-    const { result, loading, error } = useFetchProperty()
+    const { result, loading, error, refetch } = useFetchProperty()
     const [availability, setAvailability] = useState({
         checkIn: '',
         checkOut: '',
@@ -67,6 +67,7 @@ export default function PropertyDetailPage() {
                 {/* HERO */}
                 <PropertyHero
                     name={result.name}
+                    propertyId={result.id}
                     type={result.type}
                     avgRating={result.avgRating}
                     totalRating={result.totalRating}
@@ -157,6 +158,8 @@ export default function PropertyDetailPage() {
                             reviews={result.reviews}
                             avgRating={result.avgRating}
                             totalRating={result.totalRating}
+                            propertyId={result.id}
+                            onReviewCreated={refetch}
                         />
                     </div>
                 </div>

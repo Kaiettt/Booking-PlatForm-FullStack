@@ -1,8 +1,10 @@
 import { Star, MapPin } from "lucide-react"
 import type { PropertyDetail } from "../types/property/property.detai.type"
+import WishlistButton from '@/features/wishlist/components/WishlistButton'
 
 interface Props {
     name: string
+    propertyId: number
     type: string
     avgRating: number | null
     totalRating: number | null
@@ -11,6 +13,7 @@ interface Props {
 
 export default function PropertyHero({
     name,
+    propertyId,
     type,
     avgRating,
     totalRating,
@@ -23,6 +26,10 @@ export default function PropertyHero({
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">
                     {type}
                 </span>
+
+                <div className="ml-3">
+                    <WishlistButton propertyId={propertyId} />
+                </div>
             </div>
 
             <div className="flex items-center gap-4 text-sm text-gray-600">

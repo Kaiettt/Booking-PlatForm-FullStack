@@ -140,5 +140,13 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found " + id));
     }
 
+    @Override
+    public List<BookingResponse> getBookingsByHostId(Long hostId) {
+        return this.bookingRepository.findProjectedByHostId(hostId)
+                .stream()
+                .map(this.bookingMapper::toResponseFromProjection)
+                .toList();
+    }
+
 
 }
