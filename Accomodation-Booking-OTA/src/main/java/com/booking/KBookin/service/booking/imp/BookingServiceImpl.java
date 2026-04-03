@@ -71,7 +71,7 @@ public class BookingServiceImpl implements BookingService {
 
         Booking booking = Booking.fromCreateRequest(request);
 
-        List<BookingItem> items = new ArrayList<>();
+        Set<BookingItem> items = new LinkedHashSet<>();
 
         for (BookingItemRequestDTO itemDto : request.getItems()) {
             BookingItem item = BookingItem.builder()

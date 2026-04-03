@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Getter
@@ -44,7 +45,7 @@ public class RatePlan extends BaseEntity {
         inverseJoinColumns = @JoinColumn(name = "perk_id")
     )
     @Builder.Default
-    private Set<Perk> perks = new HashSet<>();
+    private Set<Perk> perks = new LinkedHashSet<>();
 
     // Price is now directly stored in the RatePlan entity
 }

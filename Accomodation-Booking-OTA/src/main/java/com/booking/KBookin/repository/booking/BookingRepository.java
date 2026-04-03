@@ -5,6 +5,7 @@ import com.booking.KBookin.repository.projection.booking.BookingProjection;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -36,5 +37,6 @@ public interface BookingRepository extends JpaRepository<Booking,Long> {
             "bookingItems.ratePlan",
             "bookingItems.ratePlan.perks"
     })
-    Optional<BookingProjection> findProjectedById(Long id);
+    @Query("SELECT DISTINCT b FROM Booking b WHERE b.id = :id") // Thêm DISTINCT ở đây
+    Optional<BookingProjection> findProjectedById(@Param("id") Long id);
 }

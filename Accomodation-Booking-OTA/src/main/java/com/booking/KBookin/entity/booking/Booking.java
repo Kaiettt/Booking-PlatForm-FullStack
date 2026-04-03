@@ -15,10 +15,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 @Setter
@@ -66,9 +63,9 @@ public class Booking extends BaseEntity {
     @Column(name = "booking_reference")
     private String bookingReference;
 
-    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
-    private List<BookingItem> bookingItems = new ArrayList<>();
+    private Set<BookingItem> bookingItems = new LinkedHashSet<>(); // Đổi List thành Set
 
 
     public void handleBookingPaymentMethod() {
@@ -128,7 +125,7 @@ public class Booking extends BaseEntity {
                         .phone(request.getGuest().getPhone())
                         .nationality(request.getGuest().getNationality())
                         .build())
-                .bookingItems(new ArrayList<>()) // Khởi tạo danh sách trống để tránh NullPointerException
+                .bookingItems(new HashSet<>()) // Khởi tạo danh sách trống để tránh NullPointerException
                 .status(BookingStatus.PENDING)    // Đảm bảo status ban đầu được set
                 .build();
     }

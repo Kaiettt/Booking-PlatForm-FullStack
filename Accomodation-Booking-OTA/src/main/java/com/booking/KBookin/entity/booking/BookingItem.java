@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -45,5 +46,17 @@ public class BookingItem extends BaseEntity {
 
     public void calculateAmount() {
         this.amount = BigDecimal.valueOf(this.quantity * this.ratePlan.getPrice());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        BookingItem that = (BookingItem) o;
+        return Objects.equals(id, that.id) && Objects.equals(booking, that.booking) && Objects.equals(roomType, that.roomType) && Objects.equals(ratePlan, that.ratePlan) && Objects.equals(quantity, that.quantity) && Objects.equals(amount, that.amount);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, booking, roomType, ratePlan, quantity, amount);
     }
 }
